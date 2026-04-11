@@ -8,10 +8,12 @@ Snippet HTML/JavaScript que detecta errores tipográficos comunes en el dominio 
 
 | Archivo | Color del texto | Cuándo usarla |
 |---|---|---|
-| [`email-typo-checker-light.html`](email-typo-checker-light.html) | Texto **oscuro** (#1f2937) | Landings con fondo claro (blanco, beige, gris claro) |
-| [`email-typo-checker-dark.html`](email-typo-checker-dark.html) | Texto **claro** (#f9fafb) | Landings con fondo oscuro (negro, gris oscuro, azul marino) |
+| [`email-typo-checker-light.html`](email-typo-checker-light.html) / [`.js`](email-typo-checker-light.js) | Texto **oscuro** (#1f2937) | Landings con fondo claro (blanco, beige, gris claro) |
+| [`email-typo-checker-dark.html`](email-typo-checker-dark.html) / [`.js`](email-typo-checker-dark.js) | Texto **claro** (#f9fafb) | Landings con fondo oscuro (negro, gris oscuro, azul marino) |
 
 Las dos variantes son funcionalmente idénticas, solo cambian los colores del mensaje.
+
+Cada variante existe en dos formatos: el `.html` (con etiquetas `<script>` listas para pegar) y el `.js` (solo el código, para cargarlo vía CDN — ver la sección "Opción 2" más abajo).
 
 ## Qué detecta
 
@@ -34,23 +36,58 @@ Cubre Hotmail, Gmail, Yahoo, Outlook, iCloud, Live, MSN, Proton, AOL, Telefónic
 
 ## Cómo instalarlo en una landing de Luxora / GHL
 
-> Tu formulario debe estar **insertado como bloque** dentro de la landing (no como iframe externo). Si está como bloque, este método funciona sin tocar nada del propio formulario.
+> Tu formulario debe estar **insertado como bloque** dentro de la landing (no como iframe externo). Si está como bloque, cualquiera de las dos opciones de abajo funciona sin tocar nada del propio formulario.
 
-### Paso a paso
+Tienes dos formas de instalarlo. La **Opción 2 (CDN)** es la recomendada porque recibirás mejoras automáticas cuando se actualice el repositorio sin tener que volver a copiar nada.
+
+### Opción 1 — Copiar y pegar el código entero
 
 1. Entra en *Sites → Funnels (o Sites) → tu funnel → tu landing*.
 2. Pulsa el icono **⚙ Settings** (rueda dentada) arriba a la derecha.
 3. Busca la sección **Tracking Code** (o "Custom Code", según versión).
 4. Localiza el campo **Footer** (no Header).
 5. Abre el archivo `.html` que corresponda a tu landing (light o dark).
-6. **Copia el contenido entero**, incluyendo las etiquetas `<script>` y `</script>`.
-7. Pégalo en el campo Footer.
-8. Guarda y publica la landing.
-9. Pruébalo con un email roto a propósito (ej: `test@hormail.com`) y verifica que aparece la sugerencia debajo del campo.
+6. Pulsa el botón **Raw** arriba a la derecha del visor de GitHub.
+7. Selecciona todo (`Ctrl+A`) y copia (`Ctrl+C`).
+8. Pega en el campo Footer de la landing.
+9. Guarda y publica.
+
+### Opción 2 — Cargar desde CDN (recomendado, una sola línea)
+
+En lugar de pegar todo el código, pegas **una única línea** que carga el script desde jsDelivr (CDN gratuito que sirve archivos de GitHub). Ventaja: cuando se actualice el verificador con nuevos typos, tu landing los recibe automáticamente sin tener que tocar nada.
+
+**Variante LIGHT** (texto oscuro, para fondos claros):
+
+```html
+<script src="https://cdn.jsdelivr.net/gh/pat3csh0/luxora-compartido@main/verificador-email/email-typo-checker-light.js"></script>
+```
+
+**Variante DARK** (texto claro, para fondos oscuros):
+
+```html
+<script src="https://cdn.jsdelivr.net/gh/pat3csh0/luxora-compartido@main/verificador-email/email-typo-checker-dark.js"></script>
+```
+
+Pega solo **una** de las dos líneas (la que coincida con el color de tu landing) en *Settings → Tracking Code → **Footer*** y guarda.
+
+#### Versión fijada vs versión "siempre la última"
+
+- `@main` → siempre la última versión publicada en el repositorio. Recomendado para la mayoría: recibes mejoras automáticas.
+- `@<commit-hash>` → fijado a una versión concreta que nunca cambia. Útil si necesitas reproducibilidad estricta.
+
+Para fijar a un commit concreto, sustituye `@main` por `@` seguido del hash corto del commit, por ejemplo `@a1b2c3d`. Puedes ver los hashes en https://github.com/pat3csh0/luxora-compartido/commits/main
 
 ### Si quieres aplicarlo a TODO el funnel de una vez
 
-En *Funnel Settings* (no en la landing individual) hay un Tracking Code global que se aplica a todas las páginas del funnel. Pega ahí el script y funcionará en todas las landings, opt-ins, thank-you pages, etc., sin tener que repetirlo.
+En *Funnel Settings* (no en la landing individual) hay un Tracking Code global que se aplica a todas las páginas del funnel. Pega ahí el `<script src>` y funcionará en todas las landings, opt-ins, thank-you pages, etc., sin tener que repetirlo página a página.
+
+### Cómo probar que funciona
+
+Una vez publicada la landing, abre el formulario y escribe un email roto a propósito (por ejemplo `test@hormail.com`). Al salir del campo (`Tab` o clic fuera) debe aparecer debajo del input una línea que dice:
+
+> ¿Quisiste decir **test@hotmail.com**? (haz clic para corregir)
+
+Si la pulsas, el campo se autocompleta con la versión correcta.
 
 ## Limitaciones
 

@@ -1,0 +1,294 @@
+/*
+  Verificador de typos en email — VARIANTE LIGHT (texto oscuro)
+  Para landings de fondo claro (blanco, beige, gris claro).
+
+  Detecta errores tipograficos comunes en el dominio del email
+  (hormail.com, gmail.con, yahoo.esr, gmail.commeil.com, etc.)
+  y muestra una sugerencia clicable bajo el campo. NO bloquea el
+  envio del formulario, solo informa para reducir contactos
+  invalidos en tu CRM.
+
+  ¿DONDE PEGARLO?
+  ───────────────
+  Caso habitual (form insertado como bloque en landing GHL/Luxora):
+    Sites → Funnels → tu pagina → Settings → Tracking Code → Footer
+    → pegar el bloque <script>...</script> entero.
+
+  Probado en GoHighLevel / Luxora Digital.
+  Vanilla JS, sin dependencias, ~5KB.
+
+  v3 — 2026-04-12 · JLM
+*/
+(function () {
+  // ── Dominios validos conocidos (Espana + LATAM + globales) ─
+  const KNOWN_DOMAINS = [
+    'gmail.com','googlemail.com',
+    'hotmail.com','hotmail.es','hotmail.fr','hotmail.it','hotmail.de',
+    'hotmail.co.uk','hotmail.com.mx','hotmail.com.ar','hotmail.com.br',
+    'outlook.com','outlook.es','outlook.fr','outlook.it','outlook.de','outlook.com.br',
+    'live.com','live.es','live.fr','live.it','live.nl','live.com.mx',
+    'msn.com','msn.es',
+    'yahoo.com','yahoo.es','yahoo.co.uk','yahoo.fr','yahoo.it','yahoo.de',
+    'yahoo.com.mx','yahoo.com.ar','yahoo.com.br','ymail.com','rocketmail.com',
+    'icloud.com','me.com','mac.com',
+    'aol.com','aol.es',
+    'protonmail.com','proton.me','pm.me','tutanota.com','tutanota.de','tuta.io',
+    'hey.com','duck.com','hushmail.com','fastmail.com','fastmail.fm',
+    'telefonica.net','movistar.es','orange.es','vodafone.es','jazztel.es',
+    'euskaltel.net','euskalnet.net','ono.com','terra.es','terra.com','wanadoo.es',
+    'ya.com','eresmas.com','mixmail.com','hispavista.com','airtel.net',
+    'navegalia.com','retemail.es','jet.es','telecable.es','jazzfree.com',
+    'lycos.es','nexo.es',
+    'mail.com','gmx.com','gmx.es','gmx.de','gmx.net','zoho.com','zoho.eu',
+    'yandex.com','yandex.ru','mail.ru','inbox.com',
+    'comcast.net','verizon.net','att.net','sbcglobal.net','bellsouth.net',
+    'charter.net','cox.net','earthlink.net','juno.com','optonline.net',
+    'roadrunner.com','rr.com',
+    'web.de','t-online.de','freenet.de','libero.it','virgilio.it','alice.it',
+    'tin.it','free.fr','laposte.net','sfr.fr','orange.fr','wanadoo.fr',
+    'bt.com','btinternet.com','btopenworld.com','sky.com','ntlworld.com','tiscali.co.uk',
+    'prodigy.net.mx','telmexmail.com','uol.com.br','bol.com.br','terra.com.br','globo.com'
+  ];
+  const KNOWN_SET = new Set(KNOWN_DOMAINS);
+
+  // ── Typos exactos (atajo rapido, sin Levenshtein) ──────────
+  const TYPO_MAP = {
+    // HOTMAIL.COM
+    'hormail.com':'hotmail.com','hotmai.com':'hotmail.com','hotmial.com':'hotmail.com',
+    'hotnail.com':'hotmail.com','hotmail.cm':'hotmail.com','hotmail.como':'hotmail.com',
+    'hotmail.come':'hotmail.com','hotmail.coom':'hotmail.com','hotamail.com':'hotmail.com',
+    'hotmaill.com':'hotmail.com','hotmali.com':'hotmail.com','hottmail.com':'hotmail.com',
+    'htomail.com':'hotmail.com','hotmal.com':'hotmail.com','hotmaol.com':'hotmail.com',
+    'hotrmail.com':'hotmail.com','hotmsil.com':'hotmail.com','hotmuil.com':'hotmail.com',
+    'hotmaik.com':'hotmail.com','hotmqil.com':'hotmail.com','hortmail.com':'hotmail.com',
+    'hotmaul.com':'hotmail.com','hotmaiil.com':'hotmail.com','hotmaiml.com':'hotmail.com',
+    'hotmaeil.com':'hotmail.com','homail.com':'hotmail.com','hotmeil.com':'hotmail.com',
+    'hitmail.com':'hotmail.com','hotamil.com':'hotmail.com','hot.mail.com':'hotmail.com',
+    'hotmail.cim':'hotmail.com','hotmatmail.com':'hotmail.com','hotmai.ciom':'hotmail.com',
+    'hortmsil.com':'hotmail.com','htmail.com':'hotmail.com','hatmail.com':'hotmail.com',
+    'hotmail.con':'hotmail.com','hotmaill.com':'hotmail.com',
+    // HOTMAIL.ES
+    'hormail.es':'hotmail.es','hotmai.es':'hotmail.es','hotmial.es':'hotmail.es',
+    'hotnail.es':'hotmail.es','hotmail.es.com':'hotmail.es','hotmal.es':'hotmail.es',
+    'hotmaol.es':'hotmail.es','hotmaiil.es':'hotmail.es','hottmail.es':'hotmail.es',
+    'hotmali.es':'hotmail.es','hotmsil.es':'hotmail.es','htomail.es':'hotmail.es',
+    'hotmaill.es':'hotmail.es','hotmatmail.es':'hotmail.es','homail.es':'hotmail.es',
+    'hotmai.ess':'hotmail.es','hotmail.ed':'hotmail.es','hotmail.com.es':'hotmail.es',
+    // GMAIL.COM
+    'gmial.com':'gmail.com','gmal.com':'gmail.com','gnail.com':'gmail.com',
+    'gmsil.com':'gmail.com','gmaikl.com':'gmail.com','gmaul.com':'gmail.com',
+    'gmaiil.com':'gmail.com','gemail.com':'gmail.com','ggmail.com':'gmail.com',
+    'gmaill.com':'gmail.com','gmaii.com':'gmail.com','gmsail.com':'gmail.com',
+    'gmali.com':'gmail.com','gmaio.com':'gmail.com','fmail.com':'gmail.com',
+    'gmaiml.com':'gmail.com','gmaeil.com':'gmail.com','gmal.es':'gmail.com',
+    'gmial.es':'gmail.com','gmail.es':'gmail.com','gnail.es':'gmail.com',
+    'gmailcom':'gmail.com','gmail.col':'gmail.com','gmailo.com':'gmail.com',
+    'gmail.con':'gmail.com','gmail.com.com':'gmail.com','gmail.cm':'gmail.com',
+    'gmail.cpm':'gmail.com','gmail.clm':'gmail.com','gmail.coml':'gmail.com',
+    'gmail.comr':'gmail.com','gmail.comm':'gmail.com','gmail.cmf':'gmail.com',
+    'gmail.con.es':'gmail.com','gmail.om':'gmail.com','gmail.cm.es':'gmail.com',
+    'gmail.com.mx':'gmail.com','gmail.com.ar':'gmail.com','gmail.com.es':'gmail.com',
+    'gimail.com':'gmail.com','gail.com':'gmail.com','gml.com':'gmail.com',
+    'gnsil.com':'gmail.com','glail.com':'gmail.com','hgmail.com':'gmail.com',
+    'gmaol.com':'gmail.com','gmaim.com':'gmail.com','gamil.com':'gmail.com',
+    'cmail.com':'gmail.com','gimail.es':'gmail.com','gmaill.es':'gmail.com',
+    'gmiale.com':'gmail.com','gmaim.es':'gmail.com','gmial.con':'gmail.com',
+    'gemail.es':'gmail.com','gmaul.es':'gmail.com','gmaiml.es':'gmail.com',
+    'gmaks.com':'gmail.com','gmak.com':'gmail.com','gmsiil.com':'gmail.com',
+    'g.gmail.com':'gmail.com','gmaim.com':'gmail.com','xn--gmai-jqa.cpm':'gmail.com',
+    'xn--gmai-jqa.com':'gmail.com','gmail.co.com.com':'gmail.com','gmail.co.com':'gmail.com',
+    // YAHOO.ES
+    'yahoo.esr':'yahoo.es','yaho.es':'yahoo.es','yahho.es':'yahoo.es',
+    'yhoo.es':'yahoo.es','yajoo.es':'yahoo.es','yashoo.es':'yahoo.es',
+    'yhao.es':'yahoo.es','yauhoo.es':'yahoo.es','yahooo.es':'yahoo.es',
+    'yhaoo.es':'yahoo.es','yahio.es':'yahoo.es','yshoo.es':'yahoo.es',
+    'yahoo.ess':'yahoo.es','yahoo.ew':'yahoo.es','yhoo.es':'yahoo.es',
+    'yaho.com':'yahoo.com',
+    // YAHOO.COM
+    'yhoo.com':'yahoo.com','yajoo.com':'yahoo.com','yashoo.com':'yahoo.com',
+    'yahooo.com':'yahoo.com','yhaoo.com':'yahoo.com','yshoo.com':'yahoo.com',
+    'yyahoo.com':'yahoo.com','yhaooo.com':'yahoo.com','yauhoo.com':'yahoo.com',
+    'yahio.com':'yahoo.com','yahho.com':'yahoo.com','yahoo.con':'yahoo.com',
+    'yahoo.cm':'yahoo.com','yahoo.coom':'yahoo.com','yahoo.como':'yahoo.com',
+    'yahoo.cmo':'yahoo.com','yahoo.com.com':'yahoo.com','yahoo.comi':'yahoo.com',
+    // OUTLOOK
+    'outlok.com':'outlook.com','outloo.com':'outlook.com','outloook.com':'outlook.com',
+    'outllok.com':'outlook.com','oulook.com':'outlook.com','outluk.com':'outlook.com',
+    'otlook.com':'outlook.com','outloocl.com':'outlook.com','outloolk.com':'outlook.com',
+    'outloook.es':'outlook.es','outlook.es.com':'outlook.es','outlok.es':'outlook.es',
+    'outloo.es':'outlook.es','outliok.es':'outlook.es','ouook.com':'outlook.com',
+    'ouook.es':'outlook.es','outlook.con':'outlook.com',
+    // ICLOUD
+    'iclod.com':'icloud.com','icoud.com':'icloud.com','iclud.com':'icloud.com',
+    'icould.com':'icloud.com','iclooud.com':'icloud.com','icoloud.com':'icloud.com',
+    'icluod.com':'icloud.com','iclpud.com':'icloud.com','iclou.com':'icloud.com',
+    'icluud.com':'icloud.com','iclaud.com':'icloud.com','ickoud.com':'icloud.com',
+    'icloid.com':'icloud.com','9cloud.com':'icloud.com','icloud.con':'icloud.com',
+    'icluoud.com':'icloud.com','icouud.com':'icloud.com',
+    // LIVE
+    'liv.com':'live.com','lice.com':'live.com','livr.com':'live.com',
+    'livee.com':'live.com','live.con':'live.com','live.cm':'live.com',
+    // PROTON
+    'protonmial.com':'protonmail.com','protonmsil.com':'protonmail.com',
+    'proton.com':'protonmail.com','protonail.com':'protonmail.com',
+    'prtonmail.com':'protonmail.com','protomail.com':'protonmail.com',
+    'protonmaill.com':'protonmail.com','proton.m':'proton.me','proton.es':'proton.me',
+    'protonmail.con':'protonmail.com',
+    // AOL / ME / MAC
+    'ao.com':'aol.com','oal.com':'aol.com','aoll.com':'aol.com','aol.con':'aol.com',
+    'me.cm':'me.com','mee.com':'me.com','me.con':'me.com','mac.con':'mac.com',
+    // TELEFONICA / MOVISTAR / ORANGE / VODAFONE
+    'telefnica.net':'telefonica.net','telefoniaca.net':'telefonica.net',
+    'telefonica.com':'telefonica.net','telefonia.net':'telefonica.net',
+    'movstar.es':'movistar.es','movstar.com':'movistar.es','movistsr.es':'movistar.es',
+    'oranje.es':'orange.es','orage.es':'orange.es','orang.es':'orange.es',
+    'vodafon.es':'vodafone.es','vodaphone.es':'vodafone.es','vodafonr.es':'vodafone.es',
+    // TERRA / WANADOO / JAZZTEL / MSN / GMX / ZOHO / YANDEX
+    'tera.es':'terra.es','wanado.es':'wanadoo.es','wanaddo.es':'wanadoo.es',
+    'jazzel.es':'jazztel.es','jasstel.es':'jazztel.es',
+    'msn.cm':'msn.com','msn.con':'msn.com','gmx.cm':'gmx.com','zoho.cm':'zoho.com',
+    'yandx.com':'yandex.com','yandez.com':'yandex.com'
+  };
+
+  // ── TLDs obviamente rotos (fuera de los typos exactos) ─────
+  // Importante: NO incluir .se (Suecia) como typo de .es,
+  // ni .co (Colombia) como typo de .com — son TLDs reales.
+  const TLD_FIXES = [
+    [/\.(con|coom|como|come|cmo|ocm|cm|cim|vom|xom|copm|ccom|cmm|vcom|col|cml|c|om)$/, '.com'],
+    [/\.(ess|esr|ees|sse|wes|ews|esd)$/, '.es'],
+    [/\.(nte|ent|ner|nett|neet|nrt|ney|nef)$/, '.net'],
+    [/\.(ogr|otg|orgg|prg|orh|ord)$/, '.org']
+  ];
+
+  // ── Roots con reglas de "garbage tail" admisible ───────────
+  // Si dominio = root + cualquier cosa que no sea un sufijo
+  // pais valido, asumir garbage y devolver el root limpio.
+  const ROOT_GARBAGE_RULES = [
+    ['gmail.com',     []],
+    ['googlemail.com',[]],
+    ['hotmail.com',   ['.mx','.ar','.br']],
+    ['hotmail.es',    []],
+    ['outlook.com',   ['.br','.mx','.ar']],
+    ['outlook.es',    []],
+    ['yahoo.com',     ['.mx','.ar','.br']],
+    ['yahoo.es',      []],
+    ['icloud.com',    []],
+    ['live.com',      ['.mx']],
+    ['msn.com',       []],
+    ['aol.com',       []],
+    ['protonmail.com',[]],
+    ['me.com',        []],
+    ['mac.com',       []]
+  ].sort((a,b) => b[0].length - a[0].length);
+
+  function stripGarbageTail(domain) {
+    for (const [root, allowed] of ROOT_GARBAGE_RULES) {
+      if (domain === root) return domain;
+      if (domain.startsWith(root)) {
+        const rest = domain.slice(root.length);
+        if (rest === '' || allowed.includes(rest)) return domain;
+        return root; // garbage detras del root
+      }
+    }
+    return domain;
+  }
+
+  // ── Distancia Levenshtein (red de seguridad) ───────────────
+  function lev(a, b) {
+    const m = a.length, n = b.length;
+    if (Math.abs(m - n) > 2) return 99;
+    const dp = Array.from({length: m+1}, (_,i) => [i, ...Array(n).fill(0)]);
+    for (let j = 0; j <= n; j++) dp[0][j] = j;
+    for (let i = 1; i <= m; i++)
+      for (let j = 1; j <= n; j++)
+        dp[i][j] = a[i-1] === b[j-1]
+          ? dp[i-1][j-1]
+          : 1 + Math.min(dp[i-1][j], dp[i][j-1], dp[i-1][j-1]);
+    return dp[m][n];
+  }
+
+  function suggestDomain(domain) {
+    if (KNOWN_SET.has(domain)) return null;
+    let best = null, bestDist = 3;
+    for (const k of KNOWN_DOMAINS) {
+      const d = lev(domain, k);
+      if (d < bestDist) { bestDist = d; best = k; }
+    }
+    return best;
+  }
+
+  // ── Pipeline principal ─────────────────────────────────────
+  function checkEmail(value) {
+    if (!value || !value.includes('@')) return null;
+    const cleaned = value.toLowerCase().trim();
+    const [local, rawDomain] = cleaned.split('@');
+    if (!rawDomain || !rawDomain.includes('.')) return null;
+
+    // 0. Si ya es valido, no sugerir nada
+    if (KNOWN_SET.has(rawDomain)) return null;
+
+    let domain = rawDomain;
+
+    // 1. Typo exacto en el TYPO_MAP (atajo rapido)
+    if (TYPO_MAP[domain]) {
+      return `${local}@${TYPO_MAP[domain]}`;
+    }
+
+    // 2. Reparar TLD obviamente roto
+    for (const [re, repl] of TLD_FIXES) {
+      if (re.test(domain)) {
+        domain = domain.replace(re, repl);
+        break;
+      }
+    }
+    if (KNOWN_SET.has(domain)) return `${local}@${domain}`;
+    if (TYPO_MAP[domain])      return `${local}@${TYPO_MAP[domain]}`;
+
+    // 3. Quitar "garbage tail" detras de un root conocido
+    //    (gmail.com.com, hotmail.cominievrd, etc.)
+    const stripped = stripGarbageTail(rawDomain);
+    if (stripped !== rawDomain && KNOWN_SET.has(stripped)) {
+      return `${local}@${stripped}`;
+    }
+
+    // 4. Levenshtein como ultimo recurso
+    const fix = suggestDomain(domain);
+    if (fix) return `${local}@${fix}`;
+
+    return null;
+  }
+
+  // ── UI: caja de sugerencia (variante LIGHT — texto oscuro) ─
+  function attach(input) {
+    if (input.dataset.emailcheck) return;
+    input.dataset.emailcheck = '1';
+    const hint = document.createElement('div');
+    hint.style.cssText = 'font-size:13px;margin-top:6px;color:#1f2937;display:none;cursor:pointer;line-height:1.35;font-family:inherit';
+    input.insertAdjacentElement('afterend', hint);
+
+    const validate = () => {
+      const sug = checkEmail(input.value);
+      if (sug && sug !== input.value.toLowerCase().trim()) {
+        hint.innerHTML = '¿Quisiste decir <b style="text-decoration:underline;color:#111827">' + sug + '</b>? <span style="color:#6b7280">(haz clic para corregir)</span>';
+        hint.style.display = 'block';
+        hint.onclick = () => {
+          input.value = sug;
+          input.dispatchEvent(new Event('input', {bubbles:true}));
+          input.dispatchEvent(new Event('change', {bubbles:true}));
+          hint.style.display = 'none';
+        };
+      } else {
+        hint.style.display = 'none';
+      }
+    };
+    input.addEventListener('blur', validate);
+    input.addEventListener('change', validate);
+  }
+
+  function scan() {
+    document.querySelectorAll('input[type="email"], input[name*="mail" i]').forEach(attach);
+  }
+
+  scan();
+  new MutationObserver(scan).observe(document.body, {childList:true, subtree:true});
+})();
