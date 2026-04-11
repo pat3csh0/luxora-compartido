@@ -1,6 +1,6 @@
 /*
-  Verificador de typos en email — VARIANTE LIGHT (texto oscuro)
-  Para landings de fondo claro (blanco, beige, gris claro).
+  Verificador de typos en email — VARIANTE LIGHT (texto claro)
+  Texto claro (#f9fafb). Para landings de fondo oscuro (negro, gris oscuro, azul marino).
 
   Detecta errores tipograficos comunes en el dominio del email
   (hormail.com, gmail.con, yahoo.esr, gmail.commeil.com, etc.)
@@ -258,18 +258,18 @@
     return null;
   }
 
-  // ── UI: caja de sugerencia (variante LIGHT — texto oscuro) ─
+  // ── UI: caja de sugerencia (variante LIGHT — texto claro) ─
   function attach(input) {
     if (input.dataset.emailcheck) return;
     input.dataset.emailcheck = '1';
     const hint = document.createElement('div');
-    hint.style.cssText = 'font-size:13px;margin-top:6px;color:#1f2937;display:none;cursor:pointer;line-height:1.35;font-family:inherit';
+    hint.style.cssText = 'font-size:13px;margin-top:6px;color:#f9fafb;display:none;cursor:pointer;line-height:1.35;font-family:inherit';
     input.insertAdjacentElement('afterend', hint);
 
     const validate = () => {
       const sug = checkEmail(input.value);
       if (sug && sug !== input.value.toLowerCase().trim()) {
-        hint.innerHTML = '¿Quisiste decir <b style="text-decoration:underline;color:#111827">' + sug + '</b>? <span style="color:#6b7280">(haz clic para corregir)</span>';
+        hint.innerHTML = '¿Quisiste decir <b style="text-decoration:underline;color:#ffffff">' + sug + '</b>? <span style="color:#9ca3af">(haz clic para corregir)</span>';
         hint.style.display = 'block';
         hint.onclick = () => {
           input.value = sug;

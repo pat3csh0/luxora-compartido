@@ -6,10 +6,12 @@ Snippet HTML/JavaScript que detecta errores tipográficos comunes en el dominio 
 
 ## Variantes disponibles
 
+> **Nomenclatura:** el nombre indica **el color del texto del mensaje**, no el del fondo. Si tu landing tiene fondo oscuro, usa `light` (texto claro). Si tu landing tiene fondo claro, usa `dark` (texto oscuro).
+
 | Archivo | Color del texto | Cuándo usarla |
 |---|---|---|
-| [`email-typo-checker-light.html`](email-typo-checker-light.html) / [`.js`](email-typo-checker-light.js) | Texto **oscuro** (#1f2937) | Landings con fondo claro (blanco, beige, gris claro) |
-| [`email-typo-checker-dark.html`](email-typo-checker-dark.html) / [`.js`](email-typo-checker-dark.js) | Texto **claro** (#f9fafb) | Landings con fondo oscuro (negro, gris oscuro, azul marino) |
+| [`email-typo-checker-light.html`](email-typo-checker-light.html) / [`.js`](email-typo-checker-light.js) | Texto **claro** (#f9fafb) | Landings con fondo **oscuro** (negro, gris oscuro, azul marino) |
+| [`email-typo-checker-dark.html`](email-typo-checker-dark.html) / [`.js`](email-typo-checker-dark.js) | Texto **oscuro** (#1f2937) | Landings con fondo **claro** (blanco, beige, gris claro) |
 
 Las dos variantes son funcionalmente idénticas, solo cambian los colores del mensaje.
 
@@ -56,13 +58,13 @@ Tienes dos formas de instalarlo. La **Opción 2 (CDN)** es la recomendada porque
 
 En lugar de pegar todo el código, pegas **una única línea** que carga el script desde jsDelivr (CDN gratuito que sirve archivos de GitHub). Ventaja: cuando se actualice el verificador con nuevos typos, tu landing los recibe automáticamente sin tener que tocar nada.
 
-**Variante LIGHT** (texto oscuro, para fondos claros):
+**Variante LIGHT** (texto claro · para landings de fondo oscuro):
 
 ```html
 <script src="https://cdn.jsdelivr.net/gh/pat3csh0/luxora-compartido@main/verificador-email/email-typo-checker-light.js"></script>
 ```
 
-**Variante DARK** (texto claro, para fondos oscuros):
+**Variante DARK** (texto oscuro · para landings de fondo claro):
 
 ```html
 <script src="https://cdn.jsdelivr.net/gh/pat3csh0/luxora-compartido@main/verificador-email/email-typo-checker-dark.js"></script>
