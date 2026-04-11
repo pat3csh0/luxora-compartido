@@ -65,18 +65,20 @@ Estas URLs están **fijadas a una versión concreta** del verificador. Nunca cam
 **Variante LIGHT** — texto claro para landings de fondo oscuro:
 
 ```html
-<script src="https://cdn.jsdelivr.net/gh/pat3csh0/luxora-compartido@56b5150/verificador-email/email-typo-checker-light.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/pat3csh0/luxora-compartido@v3.0.0/verificador-email/email-typo-checker-light.js"></script>
 ```
 
 **Variante DARK** — texto oscuro para landings de fondo claro:
 
 ```html
-<script src="https://cdn.jsdelivr.net/gh/pat3csh0/luxora-compartido@56b5150/verificador-email/email-typo-checker-dark.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/pat3csh0/luxora-compartido@v3.0.0/verificador-email/email-typo-checker-dark.js"></script>
 ```
 
 Pega solo **una** de las dos líneas (la que coincida con el color de fondo de tu landing) en *Settings → Tracking Code → **Footer*** y guarda.
 
-> Cuando salga una versión nueva del verificador con más typos detectados, se publicará un nuevo permalink en este README. Solo tendrás que actualizar el hash en tu Tracking Code para recibir las mejoras.
+> Cuando salga una versión nueva del verificador con más typos detectados, se publicará un nuevo tag (`@v3.1.0`, `@v3.2.0`, etc.) en este README. Solo tendrás que actualizar el número de versión en tu Tracking Code para recibir las mejoras. Las versiones antiguas seguirán funcionando indefinidamente, así que no hay urgencia.
+
+> Puedes ver todas las versiones disponibles en https://github.com/pat3csh0/luxora-compartido/tags
 
 #### URLs "siempre la última" (alternativa)
 
