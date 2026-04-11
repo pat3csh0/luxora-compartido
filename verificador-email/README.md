@@ -56,28 +56,38 @@ Tienes dos formas de instalarlo. La **Opción 2 (CDN)** es la recomendada porque
 
 ### Opción 2 — Cargar desde CDN (recomendado, una sola línea)
 
-En lugar de pegar todo el código, pegas **una única línea** que carga el script desde jsDelivr (CDN gratuito que sirve archivos de GitHub). Ventaja: cuando se actualice el verificador con nuevos typos, tu landing los recibe automáticamente sin tener que tocar nada.
+En lugar de pegar todo el código, pegas **una única línea** que carga el script desde jsDelivr (CDN gratuito que sirve archivos de GitHub).
 
-**Variante LIGHT** (texto claro · para landings de fondo oscuro):
+#### URLs estables (recomendadas)
+
+Estas URLs están **fijadas a una versión concreta** del verificador. Nunca cambian, son inmutables, y los CDNs las cachean indefinidamente sin riesgo de inconsistencias. **Usa estas en producción.**
+
+**Variante LIGHT** — texto claro para landings de fondo oscuro:
+
+```html
+<script src="https://cdn.jsdelivr.net/gh/pat3csh0/luxora-compartido@56b5150/verificador-email/email-typo-checker-light.js"></script>
+```
+
+**Variante DARK** — texto oscuro para landings de fondo claro:
+
+```html
+<script src="https://cdn.jsdelivr.net/gh/pat3csh0/luxora-compartido@56b5150/verificador-email/email-typo-checker-dark.js"></script>
+```
+
+Pega solo **una** de las dos líneas (la que coincida con el color de fondo de tu landing) en *Settings → Tracking Code → **Footer*** y guarda.
+
+> Cuando salga una versión nueva del verificador con más typos detectados, se publicará un nuevo permalink en este README. Solo tendrás que actualizar el hash en tu Tracking Code para recibir las mejoras.
+
+#### URLs "siempre la última" (alternativa)
+
+Si prefieres recibir las mejoras automáticamente sin tener que actualizar el hash manualmente, usa `@main` en lugar del hash:
 
 ```html
 <script src="https://cdn.jsdelivr.net/gh/pat3csh0/luxora-compartido@main/verificador-email/email-typo-checker-light.js"></script>
-```
-
-**Variante DARK** (texto oscuro · para landings de fondo claro):
-
-```html
 <script src="https://cdn.jsdelivr.net/gh/pat3csh0/luxora-compartido@main/verificador-email/email-typo-checker-dark.js"></script>
 ```
 
-Pega solo **una** de las dos líneas (la que coincida con el color de tu landing) en *Settings → Tracking Code → **Footer*** y guarda.
-
-#### Versión fijada vs versión "siempre la última"
-
-- `@main` → siempre la última versión publicada en el repositorio. Recomendado para la mayoría: recibes mejoras automáticas.
-- `@<commit-hash>` → fijado a una versión concreta que nunca cambia. Útil si necesitas reproducibilidad estricta.
-
-Para fijar a un commit concreto, sustituye `@main` por `@` seguido del hash corto del commit, por ejemplo `@a1b2c3d`. Puedes ver los hashes en https://github.com/pat3csh0/luxora-compartido/commits/main
+⚠️ **Advertencia:** las URLs con `@main` pueden tardar **hasta 12 horas** en reflejar cambios recientes del repositorio porque jsDelivr cachea agresivamente las ramas mutables. Si necesitas que un cambio se vea inmediatamente (por ejemplo después de un fix urgente), usa el permalink fijo de arriba.
 
 ### Si quieres aplicarlo a TODO el funnel de una vez
 
