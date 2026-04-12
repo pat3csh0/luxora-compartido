@@ -1,131 +1,206 @@
 # Verificador de email para Luxora / GoHighLevel
 
-Snippet HTML/JavaScript que detecta errores tipográficos comunes en el dominio del email cuando un usuario rellena un formulario, y le muestra una sugerencia clicable bajo el campo.
+Cuando alguien rellena un formulario en tu landing y escribe mal su email (por ejemplo `gmail.con` en vez de `gmail.com`), ese contacto llega a tu CRM como inválido: no puedes enviarle emails, tu tasa de rebote sube y tu dominio pierde reputación.
 
-**No bloquea el envío** del formulario, solo informa, para reducir contactos inválidos en tu CRM sin añadir fricción.
+Este verificador detecta esos errores **en el momento**, antes de que el usuario envíe el formulario, y le muestra un aviso clicable para corregirlo en un solo toque. Sin códigos de verificación, sin pasos extra, sin fricción.
+
+**No bloquea el envío.** Solo informa. Si el usuario ignora la sugerencia, el formulario se envía igualmente. Pero en la práctica, la mayoría acepta la corrección.
+
+## Qué errores detecta
+
+El verificador cubre **5 tipos de errores** que se producen en formularios reales:
+
+### 1. Errores al escribir el nombre del proveedor
+
+El usuario teclea rápido y se equivoca en alguna letra del dominio:
+
+| El usuario escribe | Se sugiere |
+|---|---|
+| `juan@**hormail**.com` | `juan@hotmail.com` |
+| `juan@**gmial**.com` | `juan@gmail.com` |
+| `juan@**yaho**.es` | `juan@yahoo.es` |
+| `juan@**outloo**.com` | `juan@outlook.com` |
+| `juan@**iclaud**.com` | `juan@icloud.com` |
+| `juan@**hotmeil**.com` | `juan@hotmail.com` |
+| `juan@**gnail**.com` | `juan@gmail.com` |
+| `juan@**hitmail**.com` | `juan@hotmail.com` |
+| `juan@**gamil**.com` | `juan@gmail.com` |
+| `juan@**gemail**.com` | `juan@gmail.com` |
+
+Cubre **+180 variantes** reales de Hotmail, Gmail, Yahoo, Outlook, iCloud, Live, Proton, AOL, Movistar, Orange, Vodafone, Telefónica y más.
+
+### 2. Errores en la terminación (.com, .es, .net)
+
+El usuario pulsa una tecla de más, de menos, o en el orden incorrecto:
+
+| El usuario escribe | Se sugiere |
+|---|---|
+| `juan@gmail.**con**` | `juan@gmail.com` |
+| `juan@yahoo.**esr**` | `juan@yahoo.es` |
+| `juan@hotmail.**coom**` | `juan@hotmail.com` |
+| `juan@gmail.**cm**` | `juan@gmail.com` |
+| `juan@gmail.**cpm**` | `juan@gmail.com` |
+| `juan@outlook.**como**` | `juan@outlook.com` |
+| `juan@telefonica.**nte**` | `juan@telefonica.net` |
+
+### 3. Texto sobrante pegado detrás del dominio
+
+El usuario copia y pega mal, o el teclado del móvil autocompleta añadiendo caracteres de más:
+
+| El usuario escribe | Se sugiere |
+|---|---|
+| `juan@gmail.com**meil.com**` | `juan@gmail.com` |
+| `juan@hotmail.com**yquyzqz**` | `juan@hotmail.com` |
+| `juan@gmail.com**.com**` | `juan@gmail.com` |
+| `juan@gmail.com**r**` | `juan@gmail.com` |
+| `juan@hotmail.com**inievrd**` | `juan@hotmail.com` |
+
+### 4. Errores compuestos (nombre mal + terminación mal a la vez)
+
+El usuario comete dos errores en el mismo dominio. El verificador los resuelve en cascada:
+
+| El usuario escribe | Se sugiere |
+|---|---|
+| `juan@**gmail.con**.com` | `juan@gmail.com` |
+| `juan@**hotmail.con**.com` | `juan@hotmail.com` |
+| `juan@**gemail**.**con**` | `juan@gmail.com` |
+| `juan@**hormail**.**con**` | `juan@hotmail.com` |
+| `juan@**gnail**.**con**` | `juan@gmail.com` |
+| `juan@**hormail**.org` | `juan@hotmail.com` |
+
+### 5. Dominios de país donde no existen
+
+Gmail, por ejemplo, solo usa `gmail.com`. No existe `gmail.es`, `gmail.com.mx` ni `gmail.com.ar`:
+
+| El usuario escribe | Se sugiere |
+|---|---|
+| `juan@gmail.com.**mx**` | `juan@gmail.com` |
+| `juan@gmail.com.**ar**` | `juan@gmail.com` |
+| `juan@gmail.**es**` | `juan@gmail.com` |
+
+## Proveedores cubiertos
+
+Gmail, Hotmail, Yahoo, Outlook, iCloud, Live, MSN, Proton, AOL, Telefónica, Movistar, Orange, Vodafone, Jazztel, Terra, Wanadoo, GMX, Yandex, Zoho, y los principales ISP de España, Europa y Latinoamérica.
+
+En total: **~80 dominios válidos** reconocidos + **+180 errores exactos** mapeados + detección automática de errores no listados mediante algoritmos de similitud.
 
 ## Variantes disponibles
 
-> **Nomenclatura:** el nombre indica **el color del texto del mensaje**, no el del fondo. Si tu landing tiene fondo oscuro, usa `light` (texto claro). Si tu landing tiene fondo claro, usa `dark` (texto oscuro).
+Hay dos variantes, elige la que se adapte al **color de fondo** de tu landing:
 
-| Archivo | Color del texto | Cuándo usarla |
+| Variante | Color del texto de aviso | Cuándo usarla |
 |---|---|---|
-| [`email-typo-checker-light.html`](email-typo-checker-light.html) / [`.js`](email-typo-checker-light.js) | Texto **claro** (#f9fafb) | Landings con fondo **oscuro** (negro, gris oscuro, azul marino) |
-| [`email-typo-checker-dark.html`](email-typo-checker-dark.html) / [`.js`](email-typo-checker-dark.js) | Texto **oscuro** (#1f2937) | Landings con fondo **claro** (blanco, beige, gris claro) |
+| **light** | Texto claro (blanco) | Landings con fondo **oscuro** |
+| **dark** | Texto oscuro (casi negro) | Landings con fondo **claro** |
 
-Las dos variantes son funcionalmente idénticas, solo cambian los colores del mensaje.
+Las dos detectan exactamente lo mismo, solo cambia el color del mensaje.
 
-Cada variante existe en dos formatos: el `.html` (con etiquetas `<script>` listas para pegar) y el `.js` (solo el código, para cargarlo vía CDN — ver la sección "Opción 2" más abajo).
+## Cómo instalarlo (2 minutos)
 
-## Qué detecta
+> Tu formulario debe estar **insertado como bloque** dentro de la landing (no como iframe). Si está como bloque (lo habitual en Luxora), esto funciona sin tocar nada del formulario.
 
-Cubre **~180 typos exactos** + reparación de TLDs rotos + distancia Levenshtein contra ~80 dominios conocidos. Algunos ejemplos reales:
+### La forma más rápida: una sola línea (recomendada)
 
-| Email rellenado por el usuario | Sugerencia |
-|---|---|
-| `juan@hormail.com` | `juan@hotmail.com` |
-| `juan@gmail.con` | `juan@gmail.com` |
-| `juan@yahoo.esr` | `juan@yahoo.es` |
-| `juan@gmail.commeil.com` | `juan@gmail.com` |
-| `juan@hotmail.cominievrd` | `juan@hotmail.com` |
-| `juan@gmail.com.com` | `juan@gmail.com` |
-| `juan@hotmeil.com` | `juan@hotmail.com` |
-| `juan@iclaud.com` | `juan@icloud.com` |
-| `juan@yshoo.es` | `juan@yahoo.es` |
-| `juan@gmail.com.mx` | `juan@gmail.com` (Gmail no tiene dominio de país) |
+Pega **una única línea** en *Settings → Tracking Code → Footer* de tu landing o funnel:
 
-Cubre Hotmail, Gmail, Yahoo, Outlook, iCloud, Live, MSN, Proton, AOL, Telefónica, Movistar, Orange, Vodafone, GMX, Yandex, Zoho y los principales ISP españoles, europeos, americanos y latinoamericanos.
+**Si tu landing tiene fondo OSCURO:**
 
-## Cómo instalarlo en una landing de Luxora / GHL
+```html
+<script src="https://cdn.jsdelivr.net/gh/pat3csh0/luxora-compartido@v4.0.0/verificador-email/email-typo-checker-light.js"></script>
+```
 
-> Tu formulario debe estar **insertado como bloque** dentro de la landing (no como iframe externo). Si está como bloque, cualquiera de las dos opciones de abajo funciona sin tocar nada del propio formulario.
+**Si tu landing tiene fondo CLARO:**
 
-Tienes dos formas de instalarlo. La **Opción 2 (CDN)** es la recomendada porque recibirás mejoras automáticas cuando se actualice el repositorio sin tener que volver a copiar nada.
+```html
+<script src="https://cdn.jsdelivr.net/gh/pat3csh0/luxora-compartido@v4.0.0/verificador-email/email-typo-checker-dark.js"></script>
+```
 
-### Opción 1 — Copiar y pegar el código entero
+> Si quieres que funcione en **todas las páginas del funnel** de una vez (opt-ins, thank-you pages, etc.), pégalo en *Funnel Settings → Tracking Code → Footer* en lugar de en la landing individual.
+
+### Paso a paso detallado
 
 1. Entra en *Sites → Funnels (o Sites) → tu funnel → tu landing*.
-2. Pulsa el icono **⚙ Settings** (rueda dentada) arriba a la derecha.
-3. Busca la sección **Tracking Code** (o "Custom Code", según versión).
+2. Pulsa el icono **Settings** (rueda dentada) arriba a la derecha.
+3. Busca la sección **Tracking Code** (o "Custom Code").
 4. Localiza el campo **Footer** (no Header).
-5. Abre el archivo `.html` que corresponda a tu landing (light o dark).
-6. Pulsa el botón **Raw** arriba a la derecha del visor de GitHub.
-7. Selecciona todo (`Ctrl+A`) y copia (`Ctrl+C`).
-8. Pega en el campo Footer de la landing.
-9. Guarda y publica.
-
-### Opción 2 — Cargar desde CDN (recomendado, una sola línea)
-
-En lugar de pegar todo el código, pegas **una única línea** que carga el script desde jsDelivr (CDN gratuito que sirve archivos de GitHub).
-
-#### URLs estables (recomendadas)
-
-Estas URLs están **fijadas a una versión concreta** del verificador. Nunca cambian, son inmutables, y los CDNs las cachean indefinidamente sin riesgo de inconsistencias. **Usa estas en producción.**
-
-**Variante LIGHT** — texto claro para landings de fondo oscuro:
-
-```html
-<script src="https://cdn.jsdelivr.net/gh/pat3csh0/luxora-compartido@v3.0.0/verificador-email/email-typo-checker-light.js"></script>
-```
-
-**Variante DARK** — texto oscuro para landings de fondo claro:
-
-```html
-<script src="https://cdn.jsdelivr.net/gh/pat3csh0/luxora-compartido@v3.0.0/verificador-email/email-typo-checker-dark.js"></script>
-```
-
-Pega solo **una** de las dos líneas (la que coincida con el color de fondo de tu landing) en *Settings → Tracking Code → **Footer*** y guarda.
-
-> Cuando salga una versión nueva del verificador con más typos detectados, se publicará un nuevo tag (`@v3.1.0`, `@v3.2.0`, etc.) en este README. Solo tendrás que actualizar el número de versión en tu Tracking Code para recibir las mejoras. Las versiones antiguas seguirán funcionando indefinidamente, así que no hay urgencia.
-
-> Puedes ver todas las versiones disponibles en https://github.com/pat3csh0/luxora-compartido/tags
-
-#### URLs "siempre la última" (alternativa)
-
-Si prefieres recibir las mejoras automáticamente sin tener que actualizar el hash manualmente, usa `@main` en lugar del hash:
-
-```html
-<script src="https://cdn.jsdelivr.net/gh/pat3csh0/luxora-compartido@main/verificador-email/email-typo-checker-light.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/pat3csh0/luxora-compartido@main/verificador-email/email-typo-checker-dark.js"></script>
-```
-
-⚠️ **Advertencia:** las URLs con `@main` pueden tardar **hasta 12 horas** en reflejar cambios recientes del repositorio porque jsDelivr cachea agresivamente las ramas mutables. Si necesitas que un cambio se vea inmediatamente (por ejemplo después de un fix urgente), usa el permalink fijo de arriba.
-
-### Si quieres aplicarlo a TODO el funnel de una vez
-
-En *Funnel Settings* (no en la landing individual) hay un Tracking Code global que se aplica a todas las páginas del funnel. Pega ahí el `<script src>` y funcionará en todas las landings, opt-ins, thank-you pages, etc., sin tener que repetirlo página a página.
+5. Pega la línea `<script src="...">` que corresponda a tu landing.
+6. Guarda y publica.
 
 ### Cómo probar que funciona
 
-Una vez publicada la landing, abre el formulario y escribe un email roto a propósito (por ejemplo `test@hormail.com`). Al salir del campo (`Tab` o clic fuera) debe aparecer debajo del input una línea que dice:
+Abre tu landing publicada, ve al formulario y escribe un email roto a propósito (por ejemplo `test@hormail.com`). Al salir del campo (`Tab` o clic fuera) debe aparecer debajo:
 
 > ¿Quisiste decir **test@hotmail.com**? (haz clic para corregir)
 
-Si la pulsas, el campo se autocompleta con la versión correcta.
+Si pulsas la sugerencia, el campo se autocompleta con la versión correcta.
+
+## Versiones
+
+| Versión | Qué usar en la URL | Comportamiento |
+|---|---|---|
+| `@v4.0.0` | Versión fija, nunca cambia | Recomendada si quieres control total |
+| `@main` | Siempre la última publicada | Recibes mejoras automáticas sin tocar nada |
+
+Las versiones fijas (`@v4.0.0`, `@v3.0.0`, etc.) siguen funcionando indefinidamente. Cuando salga una nueva, se publicará aquí y podrás actualizar cambiando solo el número de versión en tu Tracking Code.
+
+Todas las versiones: https://github.com/pat3csh0/luxora-compartido/tags
 
 ## Limitaciones
 
-- **No funciona con formularios embebidos como iframe en sitios externos** (ej. WordPress que carga el form de GHL via iframe). El JS del sitio anfitrión no puede acceder al iframe por CORS. En ese caso, hay que cambiar el embed a inline o usar el campo Custom JS dentro del propio Form Builder de GHL.
-- No valida sintácticamente que el email exista (eso necesitaría un servicio externo tipo ZeroBounce o Abstract API).
-- No bloquea el envío. Si el usuario ignora la sugerencia y manda el email roto, llegará igual al CRM (eso es intencional, para no añadir fricción).
+- **Formularios en iframe:** si el formulario está embebido como iframe en una web externa (ej. WordPress), el script no puede acceder a él (restricción del navegador). Solución: cambiar el embed a inline o usar Custom JS dentro del propio Form Builder de GHL.
+- **No valida que el email exista realmente.** Solo comprueba que el dominio esté bien escrito. No hace verificación SMTP ni consulta de servidores MX.
+- **No bloquea el envío.** Es intencional: preferimos no añadir fricción. Si el usuario ignora la sugerencia, el contacto llega al CRM tal cual.
 
-## Cómo ampliar el diccionario
+## Reportar errores no detectados
 
-Si encuentras nuevos typos en tus contactos inválidos, ábrelo y añade entradas al objeto `TYPO_MAP`:
-
-```js
-const TYPO_MAP = {
-  'tudominio.malo': 'tudominio.bueno',
-  ...
-};
-```
-
-O añade dominios nuevos al array `KNOWN_DOMAINS` para que la red de seguridad por distancia de edición los reconozca como válidos.
-
-## Licencia
-
-Uso libre. Si lo modificas y mejoras, comparte la mejora.
+Si encuentras un email mal escrito que el verificador no detecta, [abre un issue aquí](https://github.com/pat3csh0/luxora-compartido/issues/new) con el ejemplo concreto. Lo añadiremos a la próxima versión.
 
 ---
 
-Mantenido por [@JLM](https://github.com/) — última actualización 2026-04-12.
+## Detalles técnicos
+
+> Esta sección es para desarrolladores y curiosos. No necesitas entender nada de esto para usar el verificador.
+
+### Pipeline de detección (6 pasos en cascada)
+
+Cuando el usuario sale del campo de email, el verificador ejecuta esta secuencia sobre el dominio (la parte después de la `@`):
+
+```
+1. ¿Es un dominio válido conocido? → No sugerir nada
+2. ¿Está en el diccionario de typos exactos (TYPO_MAP)? → Sugerir corrección directa
+3. ¿La terminación (.con, .cmo, .esr...) es un TLD roto? → Reparar y re-evaluar
+4. ¿Tiene segmentos de más? (gmail.con.com) → Quitar el último y re-evaluar
+5. ¿Tiene basura pegada después de un dominio válido? (gmail.commeil.com) → Limpiar
+6. ¿El nombre del proveedor y la terminación están mal por separado? → Evaluar cada parte
+7. ¿Se parece a algún dominio conocido? → Sugerir el más cercano (Sift3)
+```
+
+Cada paso que encuentra solución detiene el pipeline. Si ninguno encuentra nada, no se muestra sugerencia (para evitar falsos positivos con dominios corporativos legítimos).
+
+### Algoritmo de distancia: Sift3
+
+Para el paso 7 (red de seguridad), el verificador usa el algoritmo **Sift3**, el mismo que utiliza [Mailcheck.js](https://github.com/mailcheck/mailcheck) (la librería de referencia del mercado para este tipo de verificación).
+
+Sift3 es una función de distancia entre cadenas de texto que mide cuántas operaciones (insertar, borrar, sustituir letras) se necesitan para convertir una cadena en otra. Funciona de forma similar a Levenshtein (el algoritmo clásico) pero con dos ventajas: es más rápido (O(n) en vez de O(n²)) y detecta mejor las transposiciones de letras (cuando escribes `amil` en vez de `mail`).
+
+Si la distancia entre el dominio escrito y alguno de los ~80 dominios conocidos es menor que 3, se sugiere la corrección.
+
+### SLD+TLD Split Matching
+
+Inspirado en Mailcheck.js. Separa el dominio en dos partes: el **nombre del proveedor** (SLD, ej: `hotmail`) y la **terminación** (TLD, ej: `.com`). Evalúa cada parte por separado contra sus propias listas, y busca la mejor combinación que exista como dominio real.
+
+Esto permite detectar errores compuestos como `hormail.org` (nombre mal + terminación incorrecta para ese proveedor) sin necesitar una entrada en el diccionario para cada combinación posible.
+
+### Sin dependencias externas
+
+Vanilla JavaScript puro, sin librerías, sin APIs externas, sin cookies, sin tracking. Todo se ejecuta en el navegador del usuario. El script pesa ~15KB (o ~9KB minificado vía jsDelivr).
+
+### Compatibilidad
+
+Funciona en todos los navegadores modernos (Chrome, Firefox, Safari, Edge). Usa `MutationObserver` para re-engancharse automáticamente si GHL re-renderiza el formulario.
+
+---
+
+Mantenido por **JLM** — v4.0.0 · abril 2026
+
+Uso libre. Si lo modificas y mejoras, comparte la mejora.
