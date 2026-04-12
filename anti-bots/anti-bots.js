@@ -27,15 +27,16 @@
   var honeypotRefs = new WeakMap();
 
   var fieldNames = ['website', 'url', 'company_url', 'homepage', 'site_url'];
-  var fieldName = fieldNames[Math.floor(Math.random() * fieldNames.length)];
 
   // ── Inyectar el honeypot ──────────────────────────────────
   function injectHoneypot(form) {
     if (form.dataset.honeypotInjected) return;
     form.dataset.honeypotInjected = '1';
 
-    // Crear un wrapper que parece un campo de formulario normal
-    // para enganar bots que inspeccionan el DOM.
+    // Nombre aleatorio POR FORM (no global) para que un bot que
+    // aprende el nombre de un form no pueda reutilizarlo en otro
+    var thisFieldName = fieldNames[Math.floor(Math.random() * fieldNames.length)];
+
     var wrapper = document.createElement('div');
     // Tecnicas anti-deteccion: NO usar display:none (bots lo detectan).
     // En su lugar, combinar overflow, height, opacity y position para
@@ -55,8 +56,8 @@
 
     var input = document.createElement('input');
     input.type = 'text';
-    input.name = fieldName;
-    input.id = 'hp_' + fieldName;
+    input.name = thisFieldName;
+    input.id = 'hp_' + thisFieldName;
     input.tabIndex = -1;       // no accesible por tab
     input.autocomplete = 'off'; // no autocompletar
 
@@ -70,7 +71,7 @@
     honeypotRefs.set(form, input);
     // Tambien guardar el nombre para re-buscar en multi-step forms
     // donde GHL puede re-crear el DOM y la ref del WeakMap queda stale
-    form.dataset.honeypotField = fieldName;
+    form.dataset.honeypotField = thisFieldName;
 
     // ── Sobreescribir form.submit() para que bots que llaman
     //    HTMLFormElement.prototype.submit.call(form) directamente
