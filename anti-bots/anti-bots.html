@@ -84,12 +84,15 @@
 
     // ── Sobreescribir form.submit() para que bots que llaman
     //    HTMLFormElement.prototype.submit.call(form) directamente
-    //    (sin disparar el evento submit) tambien sean bloqueados ──
-    var origSubmit = form.submit.bind(form);
-    form.submit = function() {
-      if (isBotDetected(form)) return; // bot
-      origSubmit();
-    };
+    //    (sin disparar el evento submit) tambien sean bloqueados.
+    //    Solo aplica a <form> reales (los popups de GHL son divs y no tienen .submit())
+    if (typeof form.submit === 'function') {
+      var origSubmit = form.submit.bind(form);
+      form.submit = function() {
+        if (isBotDetected(form)) return;
+        origSubmit();
+      };
+    }
   }
 
   // ── Obtener honeypot de forma robusta ──────────────────────
