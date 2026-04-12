@@ -111,14 +111,16 @@ Pega **una única línea** en *Settings → Tracking Code → Footer* de tu land
 **Si tu landing tiene fondo OSCURO:**
 
 ```html
-<script src="https://cdn.jsdelivr.net/gh/pat3csh0/luxora-compartido@v4.1.0/verificador-email/email-typo-checker-light.js"></script>
+<script src="https://pat3csh0.github.io/luxora-compartido/verificador-email/email-typo-checker-light.js"></script>
 ```
 
 **Si tu landing tiene fondo CLARO:**
 
 ```html
-<script src="https://cdn.jsdelivr.net/gh/pat3csh0/luxora-compartido@v4.1.0/verificador-email/email-typo-checker-dark.js"></script>
+<script src="https://pat3csh0.github.io/luxora-compartido/verificador-email/email-typo-checker-dark.js"></script>
 ```
+
+Estas URLs siempre sirven la última versión publicada. Cuando se publique una mejora, tus landings la recibirán automáticamente en menos de 10 minutos sin tocar nada.
 
 > Si quieres que funcione en **todas las páginas del funnel** de una vez (opt-ins, thank-you pages, etc.), pégalo en *Funnel Settings → Tracking Code → Footer* en lugar de en la landing individual.
 
@@ -133,22 +135,12 @@ Pega **una única línea** en *Settings → Tracking Code → Footer* de tu land
 
 ### Cómo probar que funciona
 
-Abre tu landing publicada, ve al formulario y escribe un email roto a propósito (por ejemplo `test@hormail.com`). Al salir del campo (`Tab` o clic fuera) debe aparecer debajo:
+Abre tu landing publicada, ve al formulario y escribe un email roto a propósito (por ejemplo `test@hormail.com`):
 
-> ¿Quisiste decir **test@hotmail.com**? (haz clic para corregir)
+- **Si te detienes un momento** después de escribir el email, verás aparecer la sugerencia debajo del campo: "¿Quisiste decir test@hotmail.com? (haz clic para corregir)".
+- **Si pulsas el botón de envío directamente** sin detenerte, el verificador corrige el email automáticamente antes de que llegue al CRM. No ves nada, pero el contacto llega con `hotmail.com` en vez de `hormail.com`.
 
-Si pulsas la sugerencia, el campo se autocompleta con la versión correcta.
-
-## Versiones
-
-| Versión | Qué usar en la URL | Comportamiento |
-|---|---|---|
-| `@v4.1.0` | Versión fija, nunca cambia | Recomendada si quieres control total |
-| `@main` | Siempre la última publicada | Recibes mejoras automáticas sin tocar nada |
-
-Las versiones fijas (`@v4.1.0`, `@v3.0.0`, etc.) siguen funcionando indefinidamente. Cuando salga una nueva, se publicará aquí y podrás actualizar cambiando solo el número de versión en tu Tracking Code.
-
-Todas las versiones: https://github.com/pat3csh0/luxora-compartido/tags
+Puedes verificar que la corrección automática funciona: busca el contacto de prueba en tu CRM y comprueba que el email es el correcto.
 
 ## Limitaciones
 

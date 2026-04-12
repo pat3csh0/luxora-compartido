@@ -6,60 +6,34 @@ Copia la línea que corresponda y pégala en **Settings → Tracking Code → Fo
 
 ## Texto CLARO (para landings con fondo oscuro)
 
-Auto-actualizable (recomendada):
 ```html
-<script src="https://cdn.jsdelivr.net/gh/pat3csh0/luxora-compartido@main/verificador-email/email-typo-checker-light.js"></script>
-```
-
-Auto-actualizable minificada (~40% más ligera):
-```html
-<script src="https://cdn.jsdelivr.net/gh/pat3csh0/luxora-compartido@main/verificador-email/email-typo-checker-light.min.js"></script>
-```
-
-Versión fija v4.1.0 (no recibe mejoras, no cambia nunca):
-```html
-<script src="https://cdn.jsdelivr.net/gh/pat3csh0/luxora-compartido@v4.1.0/verificador-email/email-typo-checker-light.js"></script>
+<script src="https://pat3csh0.github.io/luxora-compartido/verificador-email/email-typo-checker-light.js"></script>
 ```
 
 ---
 
 ## Texto OSCURO (para landings con fondo claro)
 
-Auto-actualizable (recomendada):
 ```html
-<script src="https://cdn.jsdelivr.net/gh/pat3csh0/luxora-compartido@main/verificador-email/email-typo-checker-dark.js"></script>
-```
-
-Auto-actualizable minificada (~40% más ligera):
-```html
-<script src="https://cdn.jsdelivr.net/gh/pat3csh0/luxora-compartido@main/verificador-email/email-typo-checker-dark.min.js"></script>
-```
-
-Versión fija v4.1.0 (no recibe mejoras, no cambia nunca):
-```html
-<script src="https://cdn.jsdelivr.net/gh/pat3csh0/luxora-compartido@v4.1.0/verificador-email/email-typo-checker-dark.js"></script>
+<script src="https://pat3csh0.github.io/luxora-compartido/verificador-email/email-typo-checker-dark.js"></script>
 ```
 
 ---
 
-## ¿Cuál elegir?
+## Referencia rápida
 
-| URL con... | Recibe mejoras automáticas | Cambia alguna vez |
+| Variante | Fondo de la landing | URL |
 |---|---|---|
-| `@main` | Sí — cuando añadamos más typos al diccionario, tus landings los detectan sin tocar nada | Sí (para mejor) |
-| `@v4.1.0` | No — siempre la misma versión exacta | Nunca |
+| light | Oscuro | `https://pat3csh0.github.io/luxora-compartido/verificador-email/email-typo-checker-light.js` |
+| dark | Claro | `https://pat3csh0.github.io/luxora-compartido/verificador-email/email-typo-checker-dark.js` |
 
-**Para la mayoría de usuarios:** usa `@main`. Es la recomendada.
-
-**Usa `@v4.1.0`** solo si necesitas que el comportamiento no cambie nunca (ej: auditorías, tests, entornos regulados).
-
----
+Estas URLs siempre sirven **la última versión publicada**. Cuando se publica una mejora (más typos detectados, correcciones, etc.), tus landings la reciben automáticamente en menos de 10 minutos sin tocar nada.
 
 ## Otras URLs útiles
 
 | Qué | URL |
 |---|---|
 | Repo en GitHub | https://github.com/pat3csh0/luxora-compartido |
-| Release v4.1.0 | https://github.com/pat3csh0/luxora-compartido/releases/tag/v4.1.0 |
+| Última release | https://github.com/pat3csh0/luxora-compartido/releases/latest |
 | Todas las versiones | https://github.com/pat3csh0/luxora-compartido/tags |
 | Reportar typo no detectado | https://github.com/pat3csh0/luxora-compartido/issues/new |
