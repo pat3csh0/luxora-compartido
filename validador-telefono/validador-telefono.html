@@ -53,6 +53,8 @@
   };
 
   // Prefijos ordenados de mayor a menor longitud (para matching greedy)
+  // Ordenados de mayor a menor longitud para matching greedy:
+  // Si no, prefijo '1' (EEUU) matchearia antes que '351' (Portugal)
   var PREFIXES = Object.keys(COUNTRY_RULES).sort(function(a,b) { return b.length - a.length; });
 
   // ── Limpieza de formato ───────────────────────────────────
@@ -63,6 +65,7 @@
     var hasPlus = s.charAt(0) === '+';
     s = s.replace(/[^\d]/g, '');
     // Normalizar 00XX al principio → +XX
+    // Prefijo internacional europeo: 0034 → +34 (comun en lineas fijas espanolas)
     if (s.substring(0, 2) === '00') {
       s = s.substring(2);
       hasPlus = true;
@@ -101,6 +104,7 @@
     }
 
     // Demasiado largo para cualquier numero del mundo
+    // ITU-T E.164: maximo 15 digitos en un numero internacional
     if (onlyDigits.length > 15) {
       return { cleaned: cleaned, error: 'Este numero tiene demasiados digitos' };
     }

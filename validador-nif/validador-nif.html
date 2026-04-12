@@ -24,6 +24,8 @@
 <script>
 (function() {
   // ── Tabla de letras de control para DNI/NIE ───────────────
+  // Secuencia de 23 letras definida por el Ministerio del Interior.
+  // Indice = numero % 23. Ej: 12345678 % 23 = 14 → 'Z'
   var DNI_LETTERS = 'TRWAGMYFPDXBNJZSQVHLCKE';
 
   // ── Letras iniciales de CIF y tipo de control ─────────────
@@ -103,6 +105,7 @@
       }
     }
     var total = evenSum + oddSum;
+    // El % 10 exterior maneja el caso total%10===0 (que daria 10, fuera de rango)
     var controlDigit = (10 - (total % 10)) % 10;
     var controlLetter = CIF_CONTROL_LETTERS.charAt(controlDigit);
 
@@ -196,14 +199,7 @@
     var validate = function() {
       var result = validateDocument(input.value);
 
-      // Limpiar formato silenciosamente
-      if (result.cleaned && result.cleaned !== input.value.replace(/[\s.\-\/\\]/g, '').toUpperCase().trim()) {
-        // Solo limpiar si realmente cambio algo sustancial
-      }
-      if (result.cleaned && result.cleaned !== cleanNif(input.value)) {
-        // Nada extra que limpiar
-      }
-      // Siempre normalizar el formato en el campo
+      // Normalizar formato silenciosamente (quitar puntos, guiones, mayusculas)
       var currentCleaned = cleanNif(input.value);
       if (currentCleaned && currentCleaned !== input.value) {
         input.value = currentCleaned;

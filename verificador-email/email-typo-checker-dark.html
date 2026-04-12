@@ -204,6 +204,7 @@
     ['protonmail.com',[]],
     ['me.com',        []],
     ['mac.com',       []]
+  // Sorted longest-first: 'hotmail.com' se evalua antes que 'me.com' en startsWith
   ].sort((a,b) => b[0].length - a[0].length);
 
   function stripGarbageTail(domain) {
@@ -241,6 +242,7 @@
 
   function suggestDomain(domain) {
     if (KNOWN_SET.has(domain)) return null;
+    // Threshold 3: max Sift3 distance aceptable (>3 produce falsos positivos)
     var best = null, bestDist = 3;
     for (var i = 0; i < KNOWN_DOMAINS.length; i++) {
       var d = sift3(domain, KNOWN_DOMAINS[i]);
