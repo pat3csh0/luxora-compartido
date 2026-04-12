@@ -14,18 +14,18 @@ El verificador cubre **5 tipos de errores** que se producen en formularios reale
 
 El usuario teclea rápido y se equivoca en alguna letra del dominio:
 
-| El usuario escribe | Se sugiere |
-|---|---|
-| juan@**hormail**.com | juan@hotmail.com |
-| juan@**gmial**.com | juan@gmail.com |
-| juan@**yaho**.es | juan@yahoo.es |
-| juan@**outloo**.com | juan@outlook.com |
-| juan@**iclaud**.com | juan@icloud.com |
-| juan@**hotmeil**.com | juan@hotmail.com |
-| juan@**gnail**.com | juan@gmail.com |
-| juan@**hitmail**.com | juan@hotmail.com |
-| juan@**gamil**.com | juan@gmail.com |
-| juan@**gemail**.com | juan@gmail.com |
+| El usuario escribe | Se sugiere | Error |
+|---|---|---|
+| juan@hormail.com | juan@hotmail.com | hormail → hotmail |
+| juan@gmial.com | juan@gmail.com | gmial → gmail |
+| juan@yaho.es | juan@yahoo.es | yaho → yahoo |
+| juan@outloo.com | juan@outlook.com | outloo → outlook |
+| juan@iclaud.com | juan@icloud.com | iclaud → icloud |
+| juan@hotmeil.com | juan@hotmail.com | hotmeil → hotmail |
+| juan@gnail.com | juan@gmail.com | gnail → gmail |
+| juan@hitmail.com | juan@hotmail.com | hitmail → hotmail |
+| juan@gamil.com | juan@gmail.com | gamil → gmail |
+| juan@gemail.com | juan@gmail.com | gemail → gmail |
 
 Cubre **+180 variantes** reales de Hotmail, Gmail, Yahoo, Outlook, iCloud, Live, Proton, AOL, Movistar, Orange, Vodafone, Telefónica y más.
 
@@ -33,50 +33,50 @@ Cubre **+180 variantes** reales de Hotmail, Gmail, Yahoo, Outlook, iCloud, Live,
 
 El usuario pulsa una tecla de más, de menos, o en el orden incorrecto:
 
-| El usuario escribe | Se sugiere |
-|---|---|
-| juan@gmail.**con** | juan@gmail.com |
-| juan@yahoo.**esr** | juan@yahoo.es |
-| juan@hotmail.**coom** | juan@hotmail.com |
-| juan@gmail.**cm** | juan@gmail.com |
-| juan@gmail.**cpm** | juan@gmail.com |
-| juan@outlook.**como** | juan@outlook.com |
-| juan@telefonica.**nte** | juan@telefonica.net |
+| El usuario escribe | Se sugiere | Error |
+|---|---|---|
+| juan@gmail.con | juan@gmail.com | .con → .com |
+| juan@yahoo.esr | juan@yahoo.es | .esr → .es |
+| juan@hotmail.coom | juan@hotmail.com | .coom → .com |
+| juan@gmail.cm | juan@gmail.com | .cm → .com |
+| juan@gmail.cpm | juan@gmail.com | .cpm → .com |
+| juan@outlook.como | juan@outlook.com | .como → .com |
+| juan@telefonica.nte | juan@telefonica.net | .nte → .net |
 
 ### 3. Texto sobrante pegado detrás del dominio
 
 El usuario copia y pega mal, o el teclado del móvil autocompleta añadiendo caracteres de más:
 
-| El usuario escribe | Se sugiere |
-|---|---|
-| juan@gmail.com**meil.com** | juan@gmail.com |
-| juan@hotmail.com**yquyzqz** | juan@hotmail.com |
-| juan@gmail.com**.com** | juan@gmail.com |
-| juan@gmail.com**r** | juan@gmail.com |
-| juan@hotmail.com**inievrd** | juan@hotmail.com |
+| El usuario escribe | Se sugiere | Sobrante |
+|---|---|---|
+| juan@gmail.commeil.com | juan@gmail.com | meil.com |
+| juan@hotmail.comyquyzqz | juan@hotmail.com | yquyzqz |
+| juan@gmail.com.com | juan@gmail.com | .com |
+| juan@gmail.comr | juan@gmail.com | r |
+| juan@hotmail.cominievrd | juan@hotmail.com | inievrd |
 
 ### 4. Errores compuestos (nombre mal + terminación mal a la vez)
 
 El usuario comete dos errores en el mismo dominio. El verificador los resuelve en cascada:
 
-| El usuario escribe | Se sugiere |
-|---|---|
-| juan@**gmail.con**.com | juan@gmail.com |
-| juan@**hotmail.con**.com | juan@hotmail.com |
-| juan@**gemail**.**con** | juan@gmail.com |
-| juan@**hormail**.**con** | juan@hotmail.com |
-| juan@**gnail**.**con** | juan@gmail.com |
-| juan@**hormail**.org | juan@hotmail.com |
+| El usuario escribe | Se sugiere | Errores |
+|---|---|---|
+| juan@gmail.con.com | juan@gmail.com | .con + .com sobrante |
+| juan@hotmail.con.com | juan@hotmail.com | .con + .com sobrante |
+| juan@gemail.con | juan@gmail.com | gemail + .con |
+| juan@hormail.con | juan@hotmail.com | hormail + .con |
+| juan@gnail.con | juan@gmail.com | gnail + .con |
+| juan@hormail.org | juan@hotmail.com | hormail + .org incorrecto |
 
 ### 5. Dominios de país donde no existen
 
 Gmail, por ejemplo, solo usa `gmail.com`. No existe `gmail.es`, `gmail.com.mx` ni `gmail.com.ar`:
 
-| El usuario escribe | Se sugiere |
-|---|---|
-| juan@gmail.com.**mx** | juan@gmail.com |
-| juan@gmail.com.**ar** | juan@gmail.com |
-| juan@gmail.**es** | juan@gmail.com |
+| El usuario escribe | Se sugiere | Motivo |
+|---|---|---|
+| juan@gmail.com.mx | juan@gmail.com | Gmail no usa .com.mx |
+| juan@gmail.com.ar | juan@gmail.com | Gmail no usa .com.ar |
+| juan@gmail.es | juan@gmail.com | Gmail no usa .es |
 
 ## Proveedores cubiertos
 
