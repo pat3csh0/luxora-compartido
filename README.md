@@ -22,11 +22,13 @@ Cada herramienta se instala pegando **una sola línea** en *Settings → Trackin
 <script src="https://pat3csh0.github.io/luxora-compartido/verificador-email/email-typo-checker-light.js"></script>
 <script src="https://pat3csh0.github.io/luxora-compartido/verificador-email/email-typo-checker-dark.js"></script>
 
-<!-- Validador de teléfono -->
-<script src="https://pat3csh0.github.io/luxora-compartido/validador-telefono/validador-telefono.js"></script>
+<!-- Validador de teléfono (elige light O dark según tu fondo) -->
+<script src="https://pat3csh0.github.io/luxora-compartido/validador-telefono/validador-telefono-light.js"></script>
+<script src="https://pat3csh0.github.io/luxora-compartido/validador-telefono/validador-telefono-dark.js"></script>
 
-<!-- Validador NIF/CIF/NIE -->
-<script src="https://pat3csh0.github.io/luxora-compartido/validador-nif/validador-nif.js"></script>
+<!-- Validador NIF/CIF/NIE (elige light O dark según tu fondo) -->
+<script src="https://pat3csh0.github.io/luxora-compartido/validador-nif/validador-nif-light.js"></script>
+<script src="https://pat3csh0.github.io/luxora-compartido/validador-nif/validador-nif-dark.js"></script>
 
 <!-- Anti-bots -->
 <script src="https://pat3csh0.github.io/luxora-compartido/anti-bots/anti-bots.js"></script>

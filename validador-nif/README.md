@@ -54,12 +54,29 @@ Si prefieres marcar el campo manualmente, añade `data-nif="true"` al input.
 | Campo vacío | No avisa — el campo no es obligatorio para el validador |
 | Texto muy corto (< 7 caracteres) | No avisa — podría ser otra cosa que no sea un documento |
 
+## Variantes disponibles
+
+Hay dos variantes, elige la que se adapte al color de fondo de tu landing:
+
+| Variante | Color del texto de aviso | Cuándo usarla |
+|---|---|---|
+| **light** | Texto claro (ámbar claro) | Landings con fondo **oscuro** |
+| **dark** | Texto oscuro (ámbar oscuro) | Landings con fondo **claro** |
+
 ## Instalación
 
-Pega esta línea en *Settings → Tracking Code → Footer* de tu landing o funnel:
+Pega **una** de las dos líneas en *Settings → Tracking Code → Footer* de tu landing o funnel:
+
+**Si tu landing tiene fondo OSCURO:**
 
 ```html
-<script src="https://pat3csh0.github.io/luxora-compartido/validador-nif/validador-nif.js"></script>
+<script src="https://pat3csh0.github.io/luxora-compartido/validador-nif/validador-nif-light.js"></script>
+```
+
+**Si tu landing tiene fondo CLARO:**
+
+```html
+<script src="https://pat3csh0.github.io/luxora-compartido/validador-nif/validador-nif-dark.js"></script>
 ```
 
 ## Cómo probar que funciona

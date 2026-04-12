@@ -1,5 +1,5 @@
-<!--
-  Validador de telefono para Luxora / GoHighLevel
+/*
+  Validador de telefono (LIGHT) para Luxora / GoHighLevel
   ────────────────────────────────────────────────
   Limpia y valida numeros de telefono en formularios de GHL/Luxora.
   Funciona con o sin el selector de paises (intl-tel-input).
@@ -14,8 +14,7 @@
   Vanilla JS, sin dependencias.
 
   v1.1 — 2026-04-12 · JLM
--->
-<script>
+*/
 (function() {
   // ── Reglas de validacion por pais ─────────────────────────
   // Cada entrada: [prefijo, longitud del numero SIN prefijo, nombre]
@@ -195,7 +194,7 @@
     };
 
     var hint = document.createElement('div');
-    hint.style.cssText = 'font-size:13px;margin-top:6px;color:#b45309;display:none;line-height:1.35;font-family:inherit';
+    hint.style.cssText = 'font-size:13px;margin-top:6px;color:#fbbf24;display:none;line-height:1.35;font-family:inherit';
 
     // Insertar hint despues del wrapper de intl-tel-input si existe, o despues del input
     var insertAfter = hasIntlTelInput() ? input.closest('.iti') || input : input;
@@ -309,4 +308,3 @@
   scan();
   new MutationObserver(scan).observe(document.body, {childList: true, subtree: true});
 })();
-</script>

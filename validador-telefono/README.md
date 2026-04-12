@@ -61,12 +61,29 @@ Si el formulario tiene activado el selector de países (intl-tel-input), el scri
 
 Si el selector no está activo (campo de texto libre), el script hace la limpieza completa.
 
+## Variantes disponibles
+
+Hay dos variantes, elige la que se adapte al color de fondo de tu landing:
+
+| Variante | Color del texto de aviso | Cuándo usarla |
+|---|---|---|
+| **light** | Texto claro (ámbar claro) | Landings con fondo **oscuro** |
+| **dark** | Texto oscuro (ámbar oscuro) | Landings con fondo **claro** |
+
 ## Instalación
 
-Pega esta línea en *Settings → Tracking Code → Footer* de tu landing o funnel:
+Pega **una** de las dos líneas en *Settings → Tracking Code → Footer* de tu landing o funnel:
+
+**Si tu landing tiene fondo OSCURO:**
 
 ```html
-<script src="https://pat3csh0.github.io/luxora-compartido/validador-telefono/validador-telefono.js"></script>
+<script src="https://pat3csh0.github.io/luxora-compartido/validador-telefono/validador-telefono-light.js"></script>
+```
+
+**Si tu landing tiene fondo CLARO:**
+
+```html
+<script src="https://pat3csh0.github.io/luxora-compartido/validador-telefono/validador-telefono-dark.js"></script>
 ```
 
 ## Cómo probar que funciona
