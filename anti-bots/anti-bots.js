@@ -169,8 +169,12 @@
       (function(f) { setTimeout(function() { guardForm(f); }, 300); })(forms[i]);
     }
 
-    // Patron 2: popups de GHL sin <form> (hl_main_popup, modal con inputs)
-    var popups = document.querySelectorAll('.hl_main_popup, [class*="popup-body"]');
+    // Patron 2: contenedores de GHL sin <form>
+    // GHL usa al menos 3 patrones distintos sin tag <form>:
+    //   - Popups: div.hl_main_popup / div.popup-body
+    //   - Forms inline del builder: div.ghl-form-wrap / div[id="_builder-form"]
+    //   - Otros wrappers: div.form-builder--wrap
+    var popups = document.querySelectorAll('.hl_main_popup, [class*="popup-body"], .ghl-form-wrap, [id="_builder-form"], .form-builder--wrap');
     for (var i = 0; i < popups.length; i++) {
       var popup = popups[i];
       // Solo actuar si tiene inputs (es un formulario) y no tiene <form> hijo
