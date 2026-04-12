@@ -16,16 +16,16 @@ El usuario teclea rápido y se equivoca en alguna letra del dominio:
 
 | El usuario escribe | Se sugiere |
 |---|---|
-| `juan@**hormail**.com` | `juan@hotmail.com` |
-| `juan@**gmial**.com` | `juan@gmail.com` |
-| `juan@**yaho**.es` | `juan@yahoo.es` |
-| `juan@**outloo**.com` | `juan@outlook.com` |
-| `juan@**iclaud**.com` | `juan@icloud.com` |
-| `juan@**hotmeil**.com` | `juan@hotmail.com` |
-| `juan@**gnail**.com` | `juan@gmail.com` |
-| `juan@**hitmail**.com` | `juan@hotmail.com` |
-| `juan@**gamil**.com` | `juan@gmail.com` |
-| `juan@**gemail**.com` | `juan@gmail.com` |
+| juan@**hormail**.com | juan@hotmail.com |
+| juan@**gmial**.com | juan@gmail.com |
+| juan@**yaho**.es | juan@yahoo.es |
+| juan@**outloo**.com | juan@outlook.com |
+| juan@**iclaud**.com | juan@icloud.com |
+| juan@**hotmeil**.com | juan@hotmail.com |
+| juan@**gnail**.com | juan@gmail.com |
+| juan@**hitmail**.com | juan@hotmail.com |
+| juan@**gamil**.com | juan@gmail.com |
+| juan@**gemail**.com | juan@gmail.com |
 
 Cubre **+180 variantes** reales de Hotmail, Gmail, Yahoo, Outlook, iCloud, Live, Proton, AOL, Movistar, Orange, Vodafone, Telefónica y más.
 
@@ -35,13 +35,13 @@ El usuario pulsa una tecla de más, de menos, o en el orden incorrecto:
 
 | El usuario escribe | Se sugiere |
 |---|---|
-| `juan@gmail.**con**` | `juan@gmail.com` |
-| `juan@yahoo.**esr**` | `juan@yahoo.es` |
-| `juan@hotmail.**coom**` | `juan@hotmail.com` |
-| `juan@gmail.**cm**` | `juan@gmail.com` |
-| `juan@gmail.**cpm**` | `juan@gmail.com` |
-| `juan@outlook.**como**` | `juan@outlook.com` |
-| `juan@telefonica.**nte**` | `juan@telefonica.net` |
+| juan@gmail.**con** | juan@gmail.com |
+| juan@yahoo.**esr** | juan@yahoo.es |
+| juan@hotmail.**coom** | juan@hotmail.com |
+| juan@gmail.**cm** | juan@gmail.com |
+| juan@gmail.**cpm** | juan@gmail.com |
+| juan@outlook.**como** | juan@outlook.com |
+| juan@telefonica.**nte** | juan@telefonica.net |
 
 ### 3. Texto sobrante pegado detrás del dominio
 
@@ -49,11 +49,11 @@ El usuario copia y pega mal, o el teclado del móvil autocompleta añadiendo car
 
 | El usuario escribe | Se sugiere |
 |---|---|
-| `juan@gmail.com**meil.com**` | `juan@gmail.com` |
-| `juan@hotmail.com**yquyzqz**` | `juan@hotmail.com` |
-| `juan@gmail.com**.com**` | `juan@gmail.com` |
-| `juan@gmail.com**r**` | `juan@gmail.com` |
-| `juan@hotmail.com**inievrd**` | `juan@hotmail.com` |
+| juan@gmail.com**meil.com** | juan@gmail.com |
+| juan@hotmail.com**yquyzqz** | juan@hotmail.com |
+| juan@gmail.com**.com** | juan@gmail.com |
+| juan@gmail.com**r** | juan@gmail.com |
+| juan@hotmail.com**inievrd** | juan@hotmail.com |
 
 ### 4. Errores compuestos (nombre mal + terminación mal a la vez)
 
@@ -61,12 +61,12 @@ El usuario comete dos errores en el mismo dominio. El verificador los resuelve e
 
 | El usuario escribe | Se sugiere |
 |---|---|
-| `juan@**gmail.con**.com` | `juan@gmail.com` |
-| `juan@**hotmail.con**.com` | `juan@hotmail.com` |
-| `juan@**gemail**.**con**` | `juan@gmail.com` |
-| `juan@**hormail**.**con**` | `juan@hotmail.com` |
-| `juan@**gnail**.**con**` | `juan@gmail.com` |
-| `juan@**hormail**.org` | `juan@hotmail.com` |
+| juan@**gmail.con**.com | juan@gmail.com |
+| juan@**hotmail.con**.com | juan@hotmail.com |
+| juan@**gemail**.**con** | juan@gmail.com |
+| juan@**hormail**.**con** | juan@hotmail.com |
+| juan@**gnail**.**con** | juan@gmail.com |
+| juan@**hormail**.org | juan@hotmail.com |
 
 ### 5. Dominios de país donde no existen
 
@@ -74,9 +74,9 @@ Gmail, por ejemplo, solo usa `gmail.com`. No existe `gmail.es`, `gmail.com.mx` n
 
 | El usuario escribe | Se sugiere |
 |---|---|
-| `juan@gmail.com.**mx**` | `juan@gmail.com` |
-| `juan@gmail.com.**ar**` | `juan@gmail.com` |
-| `juan@gmail.**es**` | `juan@gmail.com` |
+| juan@gmail.com.**mx** | juan@gmail.com |
+| juan@gmail.com.**ar** | juan@gmail.com |
+| juan@gmail.**es** | juan@gmail.com |
 
 ## Proveedores cubiertos
 
