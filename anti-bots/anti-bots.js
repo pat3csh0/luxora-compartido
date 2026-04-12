@@ -67,8 +67,16 @@
     // que rellenan en orden lo encuentren antes)
     form.insertBefore(wrapper, form.firstChild);
 
+    // ── Congelar: detectar si el honeypot fue tocado ─────────
+    // Un bot avanzado podria rellenar el honeypot y luego limpiarlo
+    // justo antes del submit. Este flag se activa en cuanto el campo
+    // recibe cualquier input y ya no se puede desactivar.
+    var wasTouched = false;
+    input.addEventListener('input', function() { wasTouched = true; });
+    input.addEventListener('change', function() { wasTouched = true; });
+
     // ── Guardar referencia en WeakMap (evita DOM clobbering) ──
-    honeypotRefs.set(form, input);
+    honeypotRefs.set(form, { input: input, touched: function() { return wasTouched; } });
     // Tambien guardar el nombre para re-buscar en multi-step forms
     // donde GHL puede re-crear el DOM y la ref del WeakMap queda stale
     form.dataset.honeypotField = thisFieldName;
@@ -78,21 +86,35 @@
     //    (sin disparar el evento submit) tambien sean bloqueados ──
     var origSubmit = form.submit.bind(form);
     form.submit = function() {
-      var hp = getHoneypot(form);
-      if (hp && hp.value && hp.value.length > 0) return; // bot
+      if (isBotDetected(form)) return; // bot
       origSubmit();
     };
   }
 
   // ── Obtener honeypot de forma robusta ──────────────────────
   // WeakMap como primera opcion; si la ref es stale (multi-step
-  // re-crea el DOM), buscar por nombre de campo en el form
+  // re-crea el DOM), buscar por nombre de campo en el form.
+  // Devuelve { input, touched() } o null.
   function getHoneypot(form) {
-    var hp = getHoneypot(form);
-    if (hp && hp.parentNode) return hp; // ref valida y en el DOM
+    var ref = honeypotRefs.get(form);
+    if (ref && ref.input && ref.input.parentNode) return ref;
+    // Fallback por DOM query (multi-step: ref stale)
     var fname = form.dataset.honeypotField;
-    if (fname) return form.querySelector('input[name="' + fname + '"]');
+    if (fname) {
+      var el = form.querySelector('input[name="' + fname + '"]');
+      if (el) return { input: el, touched: function() { return el.value.length > 0; } };
+    }
     return null;
+  }
+
+  // Comprobar si el honeypot fue activado por un bot.
+  // Doble check: valor actual del campo O flag "touched" que se
+  // activo cuando el campo recibio input (un bot que limpia el
+  // valor antes del submit sigue siendo detectado por el flag).
+  function isBotDetected(form) {
+    var hp = getHoneypot(form);
+    if (!hp) return false;
+    return (hp.input.value && hp.input.value.length > 0) || hp.touched();
   }
 
   // ── Interceptar el submit ─────────────────────────────────
@@ -102,15 +124,11 @@
 
     // useCapture=true para ejecutarse ANTES que cualquier otro listener
     form.addEventListener('submit', function(e) {
-      var hp = getHoneypot(form);
-      if (hp && hp.value && hp.value.length > 0) {
-        // Bot detectado: el campo honeypot tiene valor
+      if (isBotDetected(form)) {
         e.preventDefault();
         e.stopImmediatePropagation();
-        // No dar feedback visual — el bot no debe saber que fue detectado
         return false;
       }
-      // Humano: el campo esta vacio, dejar pasar el submit
     }, true);
 
     // Tambien escuchar click en botones de submit (GHL a veces
@@ -121,8 +139,7 @@
         if (btn.dataset.honeypotBtn) return;
         btn.dataset.honeypotBtn = '1';
         btn.addEventListener('click', function(e) {
-          var hp = getHoneypot(form);
-          if (hp && hp.value && hp.value.length > 0) {
+          if (isBotDetected(form)) {
             e.preventDefault();
             e.stopImmediatePropagation();
             return false;
@@ -138,6 +155,9 @@
     for (var i = 0; i < forms.length; i++) {
       injectHoneypot(forms[i]);
       guardForm(forms[i]);
+      // Deferred re-guard: modals de GHL pueden anadir el boton
+      // de submit de forma asincrona despues de crear el <form>
+      (function(f) { setTimeout(function() { guardForm(f); }, 300); })(forms[i]);
     }
   }
 

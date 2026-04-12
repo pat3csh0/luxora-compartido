@@ -142,6 +142,12 @@ Abre tu landing publicada, ve al formulario y escribe un email roto a propósito
 
 Puedes verificar que la corrección automática funciona: busca el contacto de prueba en tu CRM y comprueba que el email es el correcto.
 
+## Formularios en iframe
+
+Si tu formulario se carga dentro de un **iframe** (habitual al embeber formularios de GHL en WordPress, Wix u otras webs externas), este script no puede acceder al contenido del iframe por restricciones del navegador (CORS).
+
+**Solución:** en vez de pegar el script en la web que embebe el iframe, pégalo en el **Tracking Code del funnel que genera el formulario** (dentro de GHL: *Sites → tu funnel → Settings → Tracking Code → Footer*). Así el script se ejecuta dentro del propio iframe y tiene acceso al formulario.
+
 ## Limitaciones
 
 - **Formularios en iframe:** si el formulario está embebido como iframe en una web externa (ej. WordPress), el script no puede acceder a él (restricción del navegador). Solución: cambiar el embed a inline o usar Custom JS dentro del propio Form Builder de GHL.

@@ -340,6 +340,15 @@
     s = s.replace(/[\s\u00A0]+/g, '');
     // Minusculas
     s = s.toLowerCase();
+    // Quitar acentos/diacriticos del dominio (gmáil.com → gmail.com)
+    // Solo en la parte despues de @ para no romper local parts unicode
+    var atIdx = s.indexOf('@');
+    if (atIdx >= 0) {
+      var localPart = s.substring(0, atIdx);
+      var domainPart = s.substring(atIdx + 1);
+      domainPart = domainPart.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+      s = localPart + '@' + domainPart;
+    }
     return s;
   }
 
@@ -347,6 +356,8 @@
   function checkEmail(value) {
     if (!value || !value.includes('@')) return null;
     var cleaned = sanitizeEmail(value);
+    // RFC 5321: email max 254 chars
+    if (cleaned.length > 254) return null;
     var parts = cleaned.split('@');
     var local = parts[0], rawDomain = parts[1];
     if (!rawDomain || !rawDomain.includes('.')) return null;
@@ -386,11 +397,23 @@
       }
     }
 
-    // 5. SLD+TLD split matching (compound errors: hormail.org, gmial.es)
+    // 5. Proteccion subdominios corporativos (mail.google.com, correo.empresa.es)
+    // Si el dominio tiene 2+ puntos y el TLD final es valido,
+    // probablemente es un dominio corporativo legitimo, no un typo.
+    // Se evalua ANTES del SLD+TLD split y Sift3 para evitar falsos positivos.
+    var dotCount = 0;
+    for (var j = 0; j < rawDomain.length; j++) if (rawDomain[j] === '.') dotCount++;
+    if (dotCount >= 2) {
+      var lastDot = rawDomain.lastIndexOf('.');
+      var tld = rawDomain.substring(lastDot + 1);
+      if (KNOWN_TLD_SET.has(tld)) return null;
+    }
+
+    // 6. SLD+TLD split matching (compound errors: hormail.org, gmial.es)
     var splitSug = suggestSplitMatch(domain);
     if (splitSug) return local + '@' + splitSug;
 
-    // 6. Sift3 como ultimo recurso
+    // 7. Sift3 como ultimo recurso
     var fix = suggestDomain(domain);
     if (fix) return local + '@' + fix;
 

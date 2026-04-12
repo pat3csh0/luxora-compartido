@@ -13,14 +13,14 @@
 
   Vanilla JS, sin dependencias.
 
-  v1.0 — 2026-04-12 · JLM
+  v1.1 — 2026-04-12 · JLM
 */
 (function() {
   // ── Reglas de validacion por pais ─────────────────────────
   // Cada entrada: [prefijo, longitud del numero SIN prefijo, nombre]
   // Solo validamos la longitud si conocemos el pais.
   var COUNTRY_RULES = {
-    '34':  { len: 9, name: 'Espana', mobileStart: /^[67]/, landlineStart: /^[89]/ },
+    '34':  { len: 9, name: 'Espana', validStart: /^[5-9]/ },
     '33':  { len: 9, name: 'Francia' },
     '39':  { len: [9,10], name: 'Italia' },
     '49':  { len: [10,11], name: 'Alemania' },
@@ -132,6 +132,10 @@
             return { cleaned: cleaned, error: 'Este numero tiene digitos de mas (se esperan ' + expected + ' para ' + country.rule.name + ')' };
           }
         }
+        // Validar digito inicial si hay regla (solo Espana por ahora)
+        if (country.rule.validStart && !country.rule.validStart.test(country.national)) {
+          return { cleaned: cleaned, error: 'Los numeros espanoles empiezan por 6, 7, 8 o 9' };
+        }
       }
       // Prefijo valido + longitud correcta (o desconocida) → OK
       return { cleaned: cleaned, error: null };
@@ -148,9 +152,9 @@
       return { cleaned: '+' + onlyDigits, error: null };
     }
 
-    // 9 digitos pero empieza por cifra inusual
-    if (onlyDigits.length === 9 && /^[12345]/.test(onlyDigits)) {
-      return { cleaned: cleaned, error: 'Este numero no parece un movil o fijo espanol' };
+    // 9 digitos pero empieza por cifra invalida para Espana (0-4)
+    if (onlyDigits.length === 9 && /^[0-5]/.test(onlyDigits)) {
+      return { cleaned: cleaned, error: 'Los numeros espanoles empiezan por 6, 7, 8 o 9' };
     }
 
     // Longitud incorrecta sin prefijo
@@ -172,9 +176,21 @@
     if (input.dataset.phonecheck) return;
     input.dataset.phonecheck = '1';
 
-    // Detectar si intl-tel-input esta activo (GHL country selector)
+    // ── Deteccion de intl-tel-input (GHL country selector) ────
+    // Metodo robusto: data-attribute (v18+), getInstance (v17+), clase CSS
+    function getItiInstance() {
+      if (input.dataset.intlTelInputId) {
+        if (window.intlTelInput && typeof intlTelInput.getInstance === 'function') {
+          return intlTelInput.getInstance(input);
+        }
+        if (window.intlTelInputGlobals && typeof intlTelInputGlobals.getInstance === 'function') {
+          return intlTelInputGlobals.getInstance(input);
+        }
+      }
+      return input.iti || null;
+    }
     var hasIntlTelInput = function() {
-      return input.closest('.iti') !== null || input.classList.contains('iti__tel-input');
+      return !!(input.dataset.intlTelInputId || input.closest('.iti') || input.classList.contains('iti__tel-input'));
     };
 
     var hint = document.createElement('div');
@@ -185,16 +201,44 @@
     insertAfter.insertAdjacentElement('afterend', hint);
 
     var validate = function() {
-      var result = validatePhone(input.value);
+      var iti = getItiInstance();
+      var result;
 
-      // Limpiar formato silenciosamente (espacios, guiones, etc.)
-      // Solo si NO hay intl-tel-input activo (que tiene su propia limpieza)
-      if (!hasIntlTelInput() && result.cleaned && result.cleaned !== input.value.trim()) {
+      if (iti && typeof iti.getNumber === 'function') {
+        // intl-tel-input activo — usar su E.164 y su propia validacion
+        var e164 = iti.getNumber() || '';
+        if (!e164 || e164.replace(/\D/g,'').length < 4) {
+          hint.style.display = 'none';
+          return; // campo vacio o muy corto, no molestar
+        }
+        if (typeof iti.getValidationError === 'function') {
+          var itiErr = iti.getValidationError();
+          // 0=valid, 2=too_short, 3=too_long, 4=not_a_number, 5=invalid_length
+          if (itiErr === 2 || itiErr === 5) {
+            hint.textContent = 'Parece que faltan digitos';
+            hint.style.display = 'block';
+            return;
+          }
+          if (itiErr === 3) {
+            hint.textContent = 'Este numero tiene digitos de mas';
+            hint.style.display = 'block';
+            return;
+          }
+        }
+        // ITI dice OK — confiar en su validacion
+        hint.style.display = 'none';
+        return;
+      }
+
+      // Sin intl-tel-input — validacion propia
+      result = validatePhone(input.value);
+
+      // Limpiar formato silenciosamente
+      if (result.cleaned && result.cleaned !== input.value.trim()) {
         input.value = result.cleaned;
         input.dispatchEvent(new Event('input', {bubbles:true}));
       }
 
-      // Mostrar/ocultar aviso
       if (result.error) {
         hint.textContent = result.error;
         hint.style.display = 'block';
@@ -203,8 +247,43 @@
       }
     };
 
+    // Escuchar countrychange si intl-tel-input esta activo
+    if (hasIntlTelInput()) {
+      input.addEventListener('countrychange', validate);
+    }
+
     input.addEventListener('blur', validate);
     input.addEventListener('change', validate);
+
+    // ── Autocorreccion silenciosa al pulsar el boton de submit ──
+    // Limpia formato del telefono ANTES de que GHL procese el form
+    var attachSubmitGuard = function() {
+      if (hasIntlTelInput()) return; // ITI ya gestiona el formato
+      var form = input.closest('form');
+      var btn = null;
+      if (form) btn = form.querySelector('button[type="submit"], input[type="submit"], button:not([type])');
+      if (!btn) {
+        var parent = input.parentElement;
+        while (parent && parent !== document.body) {
+          btn = parent.querySelector('button[type="submit"], button:not([type="button"])');
+          if (btn) break;
+          parent = parent.parentElement;
+        }
+      }
+      if (!btn || btn.dataset.phoneguard) return;
+      btn.dataset.phoneguard = '1';
+      btn.addEventListener('click', function() {
+        var result = validatePhone(input.value);
+        if (result.cleaned && result.cleaned !== input.value.trim()) {
+          input.value = result.cleaned;
+          input.dispatchEvent(new Event('input', {bubbles:true}));
+          input.dispatchEvent(new Event('change', {bubbles:true}));
+        }
+      }, true); // useCapture=true
+    };
+    attachSubmitGuard();
+    setTimeout(attachSubmitGuard, 500);
+    setTimeout(attachSubmitGuard, 1500);
   }
 
   // ── Escanear campos de telefono ───────────────────────────

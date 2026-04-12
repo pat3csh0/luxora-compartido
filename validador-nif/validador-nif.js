@@ -120,6 +120,16 @@
     return { type: 'CIF', valid: valid };
   }
 
+  // ── Validar NIE legacy con prefijo T ───────────────────────
+  // Formato antiguo: T + 8 chars alfanumericos. No tiene checksum.
+  // Se acepta automaticamente si cumple el patron.
+  function validateNIE_T(cleaned) {
+    if (/^T[A-Z0-9]{8}$/.test(cleaned)) {
+      return { type: 'NIE', valid: true };
+    }
+    return null;
+  }
+
   // ── Validar cualquier documento ───────────────────────────
   function validateDocument(value) {
     var cleaned = cleanNif(value);
@@ -128,6 +138,7 @@
     // Intentar cada tipo en orden
     var result = validateDNI(cleaned);
     if (!result) result = validateNIE(cleaned);
+    if (!result) result = validateNIE_T(cleaned);
     if (!result) result = validateCIF(cleaned);
 
     if (!result) {

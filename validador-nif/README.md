@@ -71,6 +71,12 @@ Pega esta línea en *Settings → Tracking Code → Footer* de tu landing o funn
 
 Para verificar que un DNI es correcto: divide los 8 dígitos entre 23 y busca el resto en la tabla `TRWAGMYFPDXBNJZSQVHLCKE`. Posición 0=T, 1=R, 2=W...
 
+## Formularios en iframe
+
+Si tu formulario se carga dentro de un **iframe** (habitual al embeber formularios de GHL en WordPress, Wix u otras webs externas), este script no puede acceder al contenido del iframe por restricciones del navegador (CORS).
+
+**Solución:** en vez de pegar el script en la web que embebe el iframe, pégalo en el **Tracking Code del funnel que genera el formulario** (dentro de GHL: *Sites → tu funnel → Settings → Tracking Code → Footer*). Así el script se ejecuta dentro del propio iframe y tiene acceso al formulario.
+
 ## Limitaciones
 
 - **Solo documentos españoles:** DNI, NIE y CIF. No valida pasaportes, documentos de otros países ni otros formatos

@@ -73,6 +73,12 @@ Pega esta línea en *Settings → Tracking Code → Footer* de tu landing o funn
 
 Escribe un número con espacios (ej: `655 38 34 94`) y sal del campo. El número debe limpiarse automáticamente a `655383494`. Escribe un número demasiado corto (ej: `65538`) y verás el aviso "Parece que faltan dígitos".
 
+## Formularios en iframe
+
+Si tu formulario se carga dentro de un **iframe** (habitual al embeber formularios de GHL en WordPress, Wix u otras webs externas), este script no puede acceder al contenido del iframe por restricciones del navegador (CORS).
+
+**Solución:** en vez de pegar el script en la web que embebe el iframe, pégalo en el **Tracking Code del funnel que genera el formulario** (dentro de GHL: *Sites → tu funnel → Settings → Tracking Code → Footer*). Así el script se ejecuta dentro del propio iframe y tiene acceso al formulario.
+
 ## Limitaciones
 
 - No valida que el número exista realmente (eso requeriría un servicio HLR externo)

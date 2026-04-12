@@ -53,6 +53,12 @@ Funciona en todas las páginas del funnel si lo pegas en *Funnel Settings* en lu
 3. Escribe algo manualmente en ese campo oculto (desde la consola: `document.querySelector('#hp_website').value = 'test'`)
 4. Intenta enviar el formulario — no debe enviarse
 
+## Formularios en iframe
+
+Si tu formulario se carga dentro de un **iframe** (habitual al embeber formularios de GHL en WordPress, Wix u otras webs externas), este script no puede acceder al contenido del iframe por restricciones del navegador (CORS).
+
+**Solución:** en vez de pegar el script en la web que embebe el iframe, pégalo en el **Tracking Code del funnel que genera el formulario** (dentro de GHL: *Sites → tu funnel → Settings → Tracking Code → Footer*). Así el script se ejecuta dentro del propio iframe y tiene acceso al formulario.
+
 ## Limitaciones
 
 - **Solo formularios en la misma página:** si el formulario está en un iframe externo, el script no puede inyectar el honeypot dentro del iframe
