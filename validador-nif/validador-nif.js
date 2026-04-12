@@ -26,17 +26,12 @@
   var DNI_LETTERS = 'TRWAGMYFPDXBNJZSQVHLCKE';
 
   // ── Letras iniciales de CIF y tipo de control ─────────────
-  // Tipo 'D': el control es un digito
-  // Tipo 'L': el control es una letra
-  // Tipo 'A': el control puede ser digito o letra
-  var CIF_TYPES = {
-    'A': 'A', 'B': 'A', 'C': 'A', 'D': 'A', // Sociedades
-    'E': 'A', 'F': 'A', 'G': 'A', 'H': 'A', // Sociedades
-    'J': 'A',                                  // Sociedad civil
-    'K': 'D', 'L': 'D', 'M': 'D',             // Espanoles sin DNI
-    'N': 'L', 'P': 'L', 'Q': 'L', 'R': 'L', 'S': 'L', 'W': 'L', // Entidades
-    'U': 'D', 'V': 'D'                        // Otros
-  };
+  // Segun BOE n.49 (26 feb 2008, articulo 2):
+  // 'D' = control DEBE ser digito
+  // 'L' = control DEBE ser letra
+  // No listado = acepta ambos
+  var CIF_MUST_DIGIT  = /^[ABCDEFGHJUV]$/;   // Sociedades + UTE + Fondos
+  var CIF_MUST_LETTER = /^[PQSNWR]$/;         // Entidades publicas + extranjeras
   var CIF_CONTROL_LETTERS = 'JABCDEFGHI';
 
   // ── Limpieza ──────────────────────────────────────────────
@@ -48,12 +43,21 @@
       .trim();
   }
 
-  // ── Validar DNI (8 digitos + letra) ───────────────────────
+  // ── Validar DNI/NIF (8 digitos + letra, o K/L/M + 7 digitos + letra) ─
   function validateDNI(cleaned) {
-    var match = cleaned.match(/^(\d{8})([A-Z])$/);
-    if (!match) return null; // no es formato DNI
-    var number = parseInt(match[1], 10);
+    // DNI estandar: 8 digitos + letra
+    // NIF temporal: K/L/M + 7 digitos + letra (se valida igual reemplazando K/L/M por 0)
+    // DNI corto: 1-7 digitos + letra (se rellena con ceros a la izquierda)
+    var match = cleaned.match(/^([KLM]?\d{1,8})([A-Z])$/);
+    if (!match) return null;
+    var numStr = match[1];
     var letter = match[2];
+    // Reemplazar K/L/M por 0 (NIF temporal)
+    numStr = numStr.replace(/^[KLM]/, '0');
+    // Left-pad a 8 digitos
+    while (numStr.length < 8) numStr = '0' + numStr;
+    if (numStr.length !== 8) return null;
+    var number = parseInt(numStr, 10);
     var expected = DNI_LETTERS.charAt(number % 23);
     return { type: 'DNI', valid: letter === expected };
   }
@@ -73,42 +77,40 @@
   }
 
   // ── Validar CIF (letra + 7 digitos + control) ─────────────
+  // Algoritmo segun BOE n.49 (26 feb 2008):
+  // - Posiciones impares (0,2,4,6): multiplicar por 2, sumar digitos
+  // - Posiciones pares (1,3,5): sumar directamente
+  // - Control = (10 - total % 10) % 10
   function validateCIF(cleaned) {
-    var match = cleaned.match(/^([A-W])(\d{7})([A-J0-9])$/);
-    if (!match) return null; // no es formato CIF
+    var match = cleaned.match(/^([ABCDEFGHJNPQRSUVW])(\d{7})([0-9A-J])$/);
+    if (!match) return null;
     var tipo = match[1];
     var digits = match[2];
     var control = match[3];
 
-    if (!CIF_TYPES[tipo]) return null; // letra inicial no reconocida
-
-    // Algoritmo de control CIF:
-    // Posiciones impares (1,3,5,7): multiplicar por 2, si >9 sumar digitos
-    // Posiciones pares (2,4,6): sumar directamente
-    var sumA = 0; // pares
-    var sumB = 0; // impares
+    var evenSum = 0; // pares (indices 1,3,5)
+    var oddSum = 0;  // impares (indices 0,2,4,6)
     for (var i = 0; i < 7; i++) {
       var d = parseInt(digits.charAt(i), 10);
       if (i % 2 === 0) {
-        // Posicion impar (indices 0,2,4,6 = posiciones 1,3,5,7)
+        // Posicion impar: multiplicar por 2, sumar digitos del resultado
         var doubled = d * 2;
-        sumB += Math.floor(doubled / 10) + (doubled % 10);
+        oddSum += Math.floor(doubled / 10) + (doubled % 10);
       } else {
-        // Posicion par (indices 1,3,5 = posiciones 2,4,6)
-        sumA += d;
+        // Posicion par: sumar directamente
+        evenSum += d;
       }
     }
-    var total = sumA + sumB;
+    var total = evenSum + oddSum;
     var controlDigit = (10 - (total % 10)) % 10;
     var controlLetter = CIF_CONTROL_LETTERS.charAt(controlDigit);
 
-    var ctrlType = CIF_TYPES[tipo];
     var valid = false;
-    if (ctrlType === 'D') {
-      valid = control === String(controlDigit);
-    } else if (ctrlType === 'L') {
+    if (CIF_MUST_LETTER.test(tipo)) {
       valid = control === controlLetter;
-    } else { // 'A' — puede ser digito o letra
+    } else if (CIF_MUST_DIGIT.test(tipo)) {
+      valid = control === String(controlDigit);
+    } else {
       valid = control === String(controlDigit) || control === controlLetter;
     }
 
