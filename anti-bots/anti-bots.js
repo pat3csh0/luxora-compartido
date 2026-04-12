@@ -131,9 +131,12 @@
       }
     }, true);
 
-    // Tambien escuchar click en botones de submit (GHL a veces
-    // usa botones que no disparan el evento submit del form)
-    var btns = form.querySelectorAll('button[type="submit"], input[type="submit"], button:not([type])');
+    // Tambien escuchar click en botones de submit.
+    // GHL usa varios patrones: <button type="submit">, <button> sin type,
+    // <a> con clase submit, o simplemente el ultimo boton del contenedor.
+    var btns = form.querySelectorAll('button[type="submit"], input[type="submit"], button:not([type]), button:not([type="button"]), .btn-submit, a.btn-submit, [data-form-submit], .hl_cta_btn');
+    // Si no encontro botones con los selectores anteriores, buscar cualquier boton
+    if (btns.length === 0) btns = form.querySelectorAll('button, a[role="button"]');
     for (var i = 0; i < btns.length; i++) {
       (function(btn) {
         if (btn.dataset.honeypotBtn) return;
@@ -150,14 +153,32 @@
   }
 
   // ── Escanear formularios ──────────────────────────────────
+  // GHL usa dos patrones distintos:
+  // 1. Formularios nativos en landings: usan <form> tag
+  // 2. Formularios popup: usan divs con clase hl_main_popup, SIN <form> tag
+  // El script debe cubrir ambos casos.
   function scan() {
+    // Patron 1: <form> tags estandar
     var forms = document.querySelectorAll('form');
     for (var i = 0; i < forms.length; i++) {
       injectHoneypot(forms[i]);
       guardForm(forms[i]);
-      // Deferred re-guard: modals de GHL pueden anadir el boton
-      // de submit de forma asincrona despues de crear el <form>
       (function(f) { setTimeout(function() { guardForm(f); }, 300); })(forms[i]);
+    }
+
+    // Patron 2: popups de GHL sin <form> (hl_main_popup, modal con inputs)
+    var popups = document.querySelectorAll('.hl_main_popup, [class*="popup-body"]');
+    for (var i = 0; i < popups.length; i++) {
+      var popup = popups[i];
+      // Solo actuar si tiene inputs (es un formulario) y no tiene <form> hijo
+      var hasInputs = popup.querySelector('input[type="email"], input[type="tel"], input[type="text"]');
+      var hasForm = popup.querySelector('form');
+      if (hasInputs && !hasForm) {
+        // Tratar el popup como si fuera un <form>
+        injectHoneypot(popup);
+        guardForm(popup);
+        (function(p) { setTimeout(function() { guardForm(p); }, 300); })(popup);
+      }
     }
   }
 
