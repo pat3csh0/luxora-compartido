@@ -68,16 +68,30 @@
 
     // ── Guardar referencia en WeakMap (evita DOM clobbering) ──
     honeypotRefs.set(form, input);
+    // Tambien guardar el nombre para re-buscar en multi-step forms
+    // donde GHL puede re-crear el DOM y la ref del WeakMap queda stale
+    form.dataset.honeypotField = fieldName;
 
     // ── Sobreescribir form.submit() para que bots que llaman
     //    HTMLFormElement.prototype.submit.call(form) directamente
     //    (sin disparar el evento submit) tambien sean bloqueados ──
     var origSubmit = form.submit.bind(form);
     form.submit = function() {
-      var hp = honeypotRefs.get(form);
+      var hp = getHoneypot(form);
       if (hp && hp.value && hp.value.length > 0) return; // bot
       origSubmit();
     };
+  }
+
+  // ── Obtener honeypot de forma robusta ──────────────────────
+  // WeakMap como primera opcion; si la ref es stale (multi-step
+  // re-crea el DOM), buscar por nombre de campo en el form
+  function getHoneypot(form) {
+    var hp = getHoneypot(form);
+    if (hp && hp.parentNode) return hp; // ref valida y en el DOM
+    var fname = form.dataset.honeypotField;
+    if (fname) return form.querySelector('input[name="' + fname + '"]');
+    return null;
   }
 
   // ── Interceptar el submit ─────────────────────────────────
@@ -87,7 +101,7 @@
 
     // useCapture=true para ejecutarse ANTES que cualquier otro listener
     form.addEventListener('submit', function(e) {
-      var hp = honeypotRefs.get(form);
+      var hp = getHoneypot(form);
       if (hp && hp.value && hp.value.length > 0) {
         // Bot detectado: el campo honeypot tiene valor
         e.preventDefault();
@@ -106,7 +120,7 @@
         if (btn.dataset.honeypotBtn) return;
         btn.dataset.honeypotBtn = '1';
         btn.addEventListener('click', function(e) {
-          var hp = honeypotRefs.get(form);
+          var hp = getHoneypot(form);
           if (hp && hp.value && hp.value.length > 0) {
             e.preventDefault();
             e.stopImmediatePropagation();

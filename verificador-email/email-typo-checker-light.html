@@ -522,7 +522,7 @@
       }, true); // useCapture=true para ejecutarse ANTES que el listener de GHL
     };
 
-    // Intentar enganchar ahora y tambien con delay (GHL renderiza async)
+    // Intentar enganchar ahora y con delays para renderizado async de GHL
     attachSubmitGuard();
     setTimeout(attachSubmitGuard, 500);
     setTimeout(attachSubmitGuard, 1500);
@@ -533,6 +533,8 @@
   }
 
   scan();
+  // MutationObserver: re-escanea cada vez que GHL modifica el DOM
+  // (cubre modals, multi-step, renderizado async de botones)
   new MutationObserver(scan).observe(document.body, {childList:true, subtree:true});
 })();
 </script>
