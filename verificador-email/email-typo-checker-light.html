@@ -326,10 +326,26 @@
     return null;
   }
 
+  // ── Sanitizacion silenciosa del email ────────────────────────
+  // Limpia caracteres invisibles, espacios internos, mayusculas.
+  // Se aplica ANTES de cualquier comprobacion de typos.
+  function sanitizeEmail(value) {
+    if (!value) return value;
+    var s = value;
+    // Quitar caracteres invisibles: zero-width space, non-breaking space,
+    // zero-width joiner/non-joiner, BOM, soft hyphen, tabs
+    s = s.replace(/[\u200B\u200C\u200D\uFEFF\u00AD\u200E\u200F\u202A-\u202E\t]/g, '');
+    // Quitar espacios (normales y non-breaking) en cualquier posicion
+    s = s.replace(/[\s\u00A0]+/g, '');
+    // Minusculas
+    s = s.toLowerCase();
+    return s;
+  }
+
   // ── Pipeline principal ─────────────────────────────────────
   function checkEmail(value) {
     if (!value || !value.includes('@')) return null;
-    var cleaned = value.toLowerCase().trim();
+    var cleaned = sanitizeEmail(value);
     var parts = cleaned.split('@');
     var local = parts[0], rawDomain = parts[1];
     if (!rawDomain || !rawDomain.includes('.')) return null;
@@ -403,8 +419,14 @@
     };
 
     var validate = function() {
+      // Sanitizar el campo silenciosamente (espacios, mayusculas, chars invisibles)
+      var sanitized = sanitizeEmail(input.value);
+      if (sanitized !== input.value) {
+        input.value = sanitized;
+        input.dispatchEvent(new Event('input', {bubbles:true}));
+      }
       var sug = checkEmail(input.value);
-      if (sug && sug !== input.value.toLowerCase().trim()) {
+      if (sug && sug !== sanitized) {
         showHint(sug);
       } else {
         hint.style.display = 'none';
@@ -461,21 +483,24 @@
       btn.dataset.emailguard = '1';
 
       btn.addEventListener('click', function() {
-        // Buscar todos los inputs de email enganchados en este contexto
         var emailInputs = (form || document).querySelectorAll('input[data-emailcheck]');
         for (var i = 0; i < emailInputs.length; i++) {
           var inp = emailInputs[i];
+          // Paso 0: sanitizar (espacios, mayusculas, chars invisibles)
+          var sanitized = sanitizeEmail(inp.value);
+          if (sanitized !== inp.value) inp.value = sanitized;
+          // Paso 1: autocorregir typo si lo hay
           var sug = checkEmail(inp.value);
-          if (sug && sug !== inp.value.toLowerCase().trim()) {
-            // Autocorregir silenciosamente antes de que GHL lea el valor
+          if (sug && sug !== sanitized) {
             inp.value = sug;
-            inp.dispatchEvent(new Event('input', {bubbles:true}));
-            inp.dispatchEvent(new Event('change', {bubbles:true}));
-            // Ocultar hint si estaba visible
-            var hintEl = inp.nextElementSibling;
-            if (hintEl && hintEl.style && hintEl.onclick) {
-              hintEl.style.display = 'none';
-            }
+          }
+          // Notificar a GHL del valor final
+          inp.dispatchEvent(new Event('input', {bubbles:true}));
+          inp.dispatchEvent(new Event('change', {bubbles:true}));
+          // Ocultar hint si estaba visible
+          var hintEl = inp.nextElementSibling;
+          if (hintEl && hintEl.style && hintEl.onclick) {
+            hintEl.style.display = 'none';
           }
         }
       }, true); // useCapture=true para ejecutarse ANTES que el listener de GHL
