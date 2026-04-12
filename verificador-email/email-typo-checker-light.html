@@ -3,7 +3,7 @@
   Texto claro (#f9fafb). Para landings de fondo oscuro (negro, gris oscuro, azul marino).
 
   Detecta errores tipograficos comunes en el dominio del email
-  (hormail.com, gmail.con, yahoo.esr, gmail.commeil.com, etc.)
+  (hormail.com, gmail.con, yahoo.esr, gmail.con.com, gmail.commeil.com, etc.)
   y muestra una sugerencia clicable bajo el campo. NO bloquea el
   envio del formulario, solo informa para reducir contactos
   invalidos en tu CRM.
@@ -15,9 +15,9 @@
     → pegar el bloque <script>...</script> entero.
 
   Probado en GoHighLevel / Luxora Digital.
-  Vanilla JS, sin dependencias, ~5KB.
+  Vanilla JS, sin dependencias.
 
-  v3 — 2026-04-12 · JLM
+  v4 — 2026-04-12 · JLM
 -->
 <script>
 (function () {
@@ -52,7 +52,32 @@
   ];
   const KNOWN_SET = new Set(KNOWN_DOMAINS);
 
-  // ── Typos exactos (atajo rapido, sin Levenshtein) ──────────
+  // ── SLDs conocidos (parte antes del primer punto) ──────────
+  const KNOWN_SLDS = [
+    'gmail','googlemail','hotmail','outlook','live','msn','yahoo','ymail',
+    'rocketmail','icloud','me','mac','aol','protonmail','proton','pm',
+    'tutanota','tuta','hey','duck','hushmail','fastmail',
+    'telefonica','movistar','orange','vodafone','jazztel',
+    'euskaltel','euskalnet','ono','terra','wanadoo','ya','eresmas',
+    'mixmail','hispavista','airtel','navegalia','retemail','jet',
+    'telecable','jazzfree','lycos','nexo',
+    'mail','gmx','zoho','yandex','inbox',
+    'comcast','verizon','att','sbcglobal','bellsouth','charter',
+    'cox','earthlink','juno','optonline','roadrunner','rr',
+    'web','t-online','freenet','libero','virgilio','alice','tin',
+    'free','laposte','sfr','bt','btinternet','btopenworld','sky',
+    'ntlworld','tiscali','prodigy','telmexmail','uol','bol','globo'
+  ];
+
+  // ── TLDs conocidos ─────────────────────────────────────────
+  const KNOWN_TLDS = [
+    'com','es','net','org','fr','it','de','co.uk','nl','me','io',
+    'eu','ru','cat','com.mx','com.ar','com.br','com.py','edu',
+    'com.es','co','app','dev','ai'
+  ];
+  const KNOWN_TLD_SET = new Set(KNOWN_TLDS);
+
+  // ── Typos exactos (atajo rapido) ───────────────────────────
   const TYPO_MAP = {
     // HOTMAIL.COM
     'hormail.com':'hotmail.com','hotmai.com':'hotmail.com','hotmial.com':'hotmail.com',
@@ -67,7 +92,7 @@
     'hitmail.com':'hotmail.com','hotamil.com':'hotmail.com','hot.mail.com':'hotmail.com',
     'hotmail.cim':'hotmail.com','hotmatmail.com':'hotmail.com','hotmai.ciom':'hotmail.com',
     'hortmsil.com':'hotmail.com','htmail.com':'hotmail.com','hatmail.com':'hotmail.com',
-    'hotmail.con':'hotmail.com','hotmaill.com':'hotmail.com',
+    'hotmail.con':'hotmail.com','hotmail.comm':'hotmail.com',
     // HOTMAIL.ES
     'hormail.es':'hotmail.es','hotmai.es':'hotmail.es','hotmial.es':'hotmail.es',
     'hotnail.es':'hotmail.es','hotmail.es.com':'hotmail.es','hotmal.es':'hotmail.es',
@@ -96,14 +121,14 @@
     'gmiale.com':'gmail.com','gmaim.es':'gmail.com','gmial.con':'gmail.com',
     'gemail.es':'gmail.com','gmaul.es':'gmail.com','gmaiml.es':'gmail.com',
     'gmaks.com':'gmail.com','gmak.com':'gmail.com','gmsiil.com':'gmail.com',
-    'g.gmail.com':'gmail.com','gmaim.com':'gmail.com','xn--gmai-jqa.cpm':'gmail.com',
+    'g.gmail.com':'gmail.com','xn--gmai-jqa.cpm':'gmail.com',
     'xn--gmai-jqa.com':'gmail.com','gmail.co.com.com':'gmail.com','gmail.co.com':'gmail.com',
     // YAHOO.ES
     'yahoo.esr':'yahoo.es','yaho.es':'yahoo.es','yahho.es':'yahoo.es',
     'yhoo.es':'yahoo.es','yajoo.es':'yahoo.es','yashoo.es':'yahoo.es',
     'yhao.es':'yahoo.es','yauhoo.es':'yahoo.es','yahooo.es':'yahoo.es',
     'yhaoo.es':'yahoo.es','yahio.es':'yahoo.es','yshoo.es':'yahoo.es',
-    'yahoo.ess':'yahoo.es','yahoo.ew':'yahoo.es','yhoo.es':'yahoo.es',
+    'yahoo.ess':'yahoo.es','yahoo.ew':'yahoo.es',
     'yaho.com':'yahoo.com',
     // YAHOO.COM
     'yhoo.com':'yahoo.com','yajoo.com':'yahoo.com','yashoo.com':'yahoo.com',
@@ -112,13 +137,14 @@
     'yahio.com':'yahoo.com','yahho.com':'yahoo.com','yahoo.con':'yahoo.com',
     'yahoo.cm':'yahoo.com','yahoo.coom':'yahoo.com','yahoo.como':'yahoo.com',
     'yahoo.cmo':'yahoo.com','yahoo.com.com':'yahoo.com','yahoo.comi':'yahoo.com',
+    'yahoo.comm':'yahoo.com',
     // OUTLOOK
     'outlok.com':'outlook.com','outloo.com':'outlook.com','outloook.com':'outlook.com',
     'outllok.com':'outlook.com','oulook.com':'outlook.com','outluk.com':'outlook.com',
     'otlook.com':'outlook.com','outloocl.com':'outlook.com','outloolk.com':'outlook.com',
     'outloook.es':'outlook.es','outlook.es.com':'outlook.es','outlok.es':'outlook.es',
     'outloo.es':'outlook.es','outliok.es':'outlook.es','ouook.com':'outlook.com',
-    'ouook.es':'outlook.es','outlook.con':'outlook.com',
+    'ouook.es':'outlook.es','outlook.con':'outlook.com','outlook.comm':'outlook.com',
     // ICLOUD
     'iclod.com':'icloud.com','icoud.com':'icloud.com','iclud.com':'icloud.com',
     'icould.com':'icloud.com','iclooud.com':'icloud.com','icoloud.com':'icloud.com',
@@ -129,6 +155,7 @@
     // LIVE
     'liv.com':'live.com','lice.com':'live.com','livr.com':'live.com',
     'livee.com':'live.com','live.con':'live.com','live.cm':'live.com',
+    'live.comm':'live.com',
     // PROTON
     'protonmial.com':'protonmail.com','protonmsil.com':'protonmail.com',
     'proton.com':'protonmail.com','protonail.com':'protonmail.com',
@@ -147,13 +174,12 @@
     // TERRA / WANADOO / JAZZTEL / MSN / GMX / ZOHO / YANDEX
     'tera.es':'terra.es','wanado.es':'wanadoo.es','wanaddo.es':'wanadoo.es',
     'jazzel.es':'jazztel.es','jasstel.es':'jazztel.es',
-    'msn.cm':'msn.com','msn.con':'msn.com','gmx.cm':'gmx.com','zoho.cm':'zoho.com',
+    'msn.cm':'msn.com','msn.con':'msn.com','msn.comm':'msn.com',
+    'gmx.cm':'gmx.com','zoho.cm':'zoho.com',
     'yandx.com':'yandex.com','yandez.com':'yandex.com'
   };
 
-  // ── TLDs obviamente rotos (fuera de los typos exactos) ─────
-  // Importante: NO incluir .se (Suecia) como typo de .es,
-  // ni .co (Colombia) como typo de .com — son TLDs reales.
+  // ── TLDs obviamente rotos ──────────────────────────────────
   const TLD_FIXES = [
     [/\.(con|coom|como|come|cmo|ocm|cm|cim|vom|xom|copm|ccom|cmm|vcom|col|cml|c|om)$/, '.com'],
     [/\.(ess|esr|ees|sse|wes|ews|esd)$/, '.es'],
@@ -161,9 +187,7 @@
     [/\.(ogr|otg|orgg|prg|orh|ord)$/, '.org']
   ];
 
-  // ── Roots con reglas de "garbage tail" admisible ───────────
-  // Si dominio = root + cualquier cosa que no sea un sufijo
-  // pais valido, asumir garbage y devolver el root limpio.
+  // ── Garbage tail: root conocido + basura detras ────────────
   const ROOT_GARBAGE_RULES = [
     ['gmail.com',     []],
     ['googlemail.com',[]],
@@ -188,73 +212,170 @@
       if (domain.startsWith(root)) {
         const rest = domain.slice(root.length);
         if (rest === '' || allowed.includes(rest)) return domain;
-        return root; // garbage detras del root
+        return root;
       }
     }
     return domain;
   }
 
-  // ── Distancia Levenshtein (red de seguridad) ───────────────
-  function lev(a, b) {
-    const m = a.length, n = b.length;
-    if (Math.abs(m - n) > 2) return 99;
-    const dp = Array.from({length: m+1}, (_,i) => [i, ...Array(n).fill(0)]);
-    for (let j = 0; j <= n; j++) dp[0][j] = j;
-    for (let i = 1; i <= m; i++)
-      for (let j = 1; j <= n; j++)
-        dp[i][j] = a[i-1] === b[j-1]
-          ? dp[i-1][j-1]
-          : 1 + Math.min(dp[i-1][j], dp[i][j-1], dp[i-1][j-1]);
-    return dp[m][n];
+  // ── Sift3 distance (misma familia que Mailcheck.js) ────────
+  // O(n), maneja transposiciones implicitamente, mas rapido que
+  // Levenshtein O(n²). maxOffset=5 igual que Mailcheck.
+  function sift3(s1, s2) {
+    if (!s1) return s2 ? s2.length : 0;
+    if (!s2) return s1.length;
+    var l1 = s1.length, l2 = s2.length;
+    var c1 = 0, c2 = 0, lcs = 0, maxOff = 5;
+    while (c1 < l1 && c2 < l2) {
+      if (s1[c1] === s2[c2]) { lcs++; }
+      else {
+        for (var i = 1; i < maxOff; i++) {
+          if (c1 + i < l1 && s1[c1 + i] === s2[c2]) { c1 += i; lcs++; break; }
+          if (c2 + i < l2 && s1[c1] === s2[c2 + i]) { c2 += i; lcs++; break; }
+        }
+      }
+      c1++; c2++;
+    }
+    return (l1 + l2) / 2 - lcs;
   }
 
   function suggestDomain(domain) {
     if (KNOWN_SET.has(domain)) return null;
-    let best = null, bestDist = 3;
-    for (const k of KNOWN_DOMAINS) {
-      const d = lev(domain, k);
-      if (d < bestDist) { bestDist = d; best = k; }
+    var best = null, bestDist = 3;
+    for (var i = 0; i < KNOWN_DOMAINS.length; i++) {
+      var d = sift3(domain, KNOWN_DOMAINS[i]);
+      if (d < bestDist) { bestDist = d; best = KNOWN_DOMAINS[i]; }
     }
     return best;
+  }
+
+  // ── SLD+TLD split matching (inspirado en Mailcheck.js) ─────
+  // Evalua la parte antes del primer punto (SLD) y la parte
+  // despues (TLD) por separado. Permite detectar compound errors
+  // sin necesitar entradas en TYPO_MAP para cada combinacion.
+  function splitDomain(domain) {
+    var idx = domain.indexOf('.');
+    if (idx < 1) return null;
+    return { sld: domain.substring(0, idx), tld: domain.substring(idx + 1) };
+  }
+
+  function suggestSplitMatch(domain) {
+    var parts = splitDomain(domain);
+    if (!parts || parts.sld.length < 3) return null;
+
+    // Buscar los mejores SLDs candidatos (distancia < 2.5)
+    var sldCandidates = [];
+    for (var i = 0; i < KNOWN_SLDS.length; i++) {
+      var d = sift3(parts.sld, KNOWN_SLDS[i]);
+      if (d < 2.5) sldCandidates.push({ sld: KNOWN_SLDS[i], dist: d });
+    }
+    sldCandidates.sort(function(a,b) { return a.dist - b.dist; });
+
+    // Para cada SLD candidato, buscar el dominio completo en KNOWN_DOMAINS
+    // que mejor combine: primero intentar con el TLD original del usuario,
+    // luego con el TLD mas comun de ese SLD.
+    for (var s = 0; s < sldCandidates.length && s < 3; s++) {
+      var sld = sldCandidates[s].sld;
+
+      // 1. Intentar con el TLD exacto del usuario
+      var exact = sld + '.' + parts.tld;
+      if (exact !== domain && KNOWN_SET.has(exact)) return exact;
+
+      // 2. Intentar con el TLD principal de ese proveedor
+      //    (el primero que aparezca en KNOWN_DOMAINS con este SLD)
+      for (var k = 0; k < KNOWN_DOMAINS.length; k++) {
+        if (KNOWN_DOMAINS[k].substring(0, KNOWN_DOMAINS[k].indexOf('.')) === sld) {
+          if (KNOWN_DOMAINS[k] !== domain) return KNOWN_DOMAINS[k];
+          break;
+        }
+      }
+    }
+    return null;
+  }
+
+  // ── Multi-segment strip ────────────────────────────────────
+  // Para dominios con 3+ segmentos como gmail.con.com:
+  // quitar el ultimo segmento y re-evaluar por el pipeline.
+  function tryMultiSegmentStrip(domain) {
+    var dots = 0;
+    for (var i = 0; i < domain.length; i++) if (domain[i] === '.') dots++;
+    if (dots < 2) return null;
+
+    // Quitar el ultimo segmento (.com, .es, etc.) y re-evaluar
+    var lastDot = domain.lastIndexOf('.');
+    var prefix = domain.substring(0, lastDot);
+
+    // El prefix puede ser un dominio conocido directamente
+    if (KNOWN_SET.has(prefix)) return prefix;
+    if (TYPO_MAP[prefix]) return TYPO_MAP[prefix];
+
+    // Intentar TLD fix en el prefix
+    for (var i = 0; i < TLD_FIXES.length; i++) {
+      if (TLD_FIXES[i][0].test(prefix)) {
+        var fixed = prefix.replace(TLD_FIXES[i][0], TLD_FIXES[i][1]);
+        if (KNOWN_SET.has(fixed)) return fixed;
+        if (TYPO_MAP[fixed]) return TYPO_MAP[fixed];
+        break;
+      }
+    }
+
+    // Intentar Sift3 en el prefix
+    var sug = suggestDomain(prefix);
+    if (sug) return sug;
+
+    return null;
   }
 
   // ── Pipeline principal ─────────────────────────────────────
   function checkEmail(value) {
     if (!value || !value.includes('@')) return null;
-    const cleaned = value.toLowerCase().trim();
-    const [local, rawDomain] = cleaned.split('@');
+    var cleaned = value.toLowerCase().trim();
+    var parts = cleaned.split('@');
+    var local = parts[0], rawDomain = parts[1];
     if (!rawDomain || !rawDomain.includes('.')) return null;
 
     // 0. Si ya es valido, no sugerir nada
     if (KNOWN_SET.has(rawDomain)) return null;
 
-    let domain = rawDomain;
+    var domain = rawDomain;
 
     // 1. Typo exacto en el TYPO_MAP (atajo rapido)
-    if (TYPO_MAP[domain]) {
-      return `${local}@${TYPO_MAP[domain]}`;
-    }
+    if (TYPO_MAP[domain]) return local + '@' + TYPO_MAP[domain];
 
     // 2. Reparar TLD obviamente roto
-    for (const [re, repl] of TLD_FIXES) {
-      if (re.test(domain)) {
-        domain = domain.replace(re, repl);
+    for (var i = 0; i < TLD_FIXES.length; i++) {
+      if (TLD_FIXES[i][0].test(domain)) {
+        domain = domain.replace(TLD_FIXES[i][0], TLD_FIXES[i][1]);
         break;
       }
     }
-    if (KNOWN_SET.has(domain)) return `${local}@${domain}`;
-    if (TYPO_MAP[domain])      return `${local}@${TYPO_MAP[domain]}`;
+    if (KNOWN_SET.has(domain)) return local + '@' + domain;
+    if (TYPO_MAP[domain])      return local + '@' + TYPO_MAP[domain];
 
-    // 3. Quitar "garbage tail" detras de un root conocido
-    //    (gmail.com.com, hotmail.cominievrd, etc.)
-    const stripped = stripGarbageTail(rawDomain);
+    // 3. Multi-segment strip (gmail.con.com → gmail.con → gmail.com)
+    var multiSeg = tryMultiSegmentStrip(rawDomain);
+    if (multiSeg) return local + '@' + multiSeg;
+
+    // 4. Garbage tail (gmail.commeil.com, hotmail.cominievrd, etc.)
+    //    Probar tanto sobre rawDomain como sobre domain (post TLD-fix)
+    var stripped = stripGarbageTail(rawDomain);
     if (stripped !== rawDomain && KNOWN_SET.has(stripped)) {
-      return `${local}@${stripped}`;
+      return local + '@' + stripped;
+    }
+    if (domain !== rawDomain) {
+      var stripped2 = stripGarbageTail(domain);
+      if (stripped2 !== domain && KNOWN_SET.has(stripped2)) {
+        return local + '@' + stripped2;
+      }
     }
 
-    // 4. Levenshtein como ultimo recurso
-    const fix = suggestDomain(domain);
-    if (fix) return `${local}@${fix}`;
+    // 5. SLD+TLD split matching (compound errors: hormail.org, gmial.es)
+    var splitSug = suggestSplitMatch(domain);
+    if (splitSug) return local + '@' + splitSug;
+
+    // 6. Sift3 como ultimo recurso
+    var fix = suggestDomain(domain);
+    if (fix) return local + '@' + fix;
 
     return null;
   }
@@ -263,16 +384,16 @@
   function attach(input) {
     if (input.dataset.emailcheck) return;
     input.dataset.emailcheck = '1';
-    const hint = document.createElement('div');
+    var hint = document.createElement('div');
     hint.style.cssText = 'font-size:13px;margin-top:6px;color:#f9fafb;display:none;cursor:pointer;line-height:1.35;font-family:inherit';
     input.insertAdjacentElement('afterend', hint);
 
-    const validate = () => {
-      const sug = checkEmail(input.value);
+    var validate = function() {
+      var sug = checkEmail(input.value);
       if (sug && sug !== input.value.toLowerCase().trim()) {
-        hint.innerHTML = '¿Quisiste decir <b style="text-decoration:underline;color:#ffffff">' + sug + '</b>? <span style="color:#9ca3af">(haz clic para corregir)</span>';
+        hint.innerHTML = '\u00bfQuisiste decir <b style="text-decoration:underline;color:#ffffff">' + sug + '</b>? <span style="color:#9ca3af">(haz clic para corregir)</span>';
         hint.style.display = 'block';
-        hint.onclick = () => {
+        hint.onclick = function() {
           input.value = sug;
           input.dispatchEvent(new Event('input', {bubbles:true}));
           input.dispatchEvent(new Event('change', {bubbles:true}));
