@@ -36,6 +36,10 @@ Cada herramienta se instala pegando **una sola línea** en *Settings → Trackin
 
 Puedes usar una, varias o todas a la vez. Son independientes y no interfieren entre sí.
 
+## Testing
+
+Cada herramienta tiene su propia guía de testing paso a paso (`TESTING.md` dentro de su carpeta). Las guías están escritas para usuarios no técnicos — explican desde cómo abrir las herramientas de desarrollador del navegador hasta cómo verificar que todo funciona correctamente.
+
 ## Changelog
 
 Historial completo de cambios: [CHANGELOG.md](CHANGELOG.md)
