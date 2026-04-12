@@ -17,7 +17,7 @@
   Probado en GoHighLevel / Luxora Digital.
   Vanilla JS, sin dependencias.
 
-  v4 — 2026-04-12 · JLM
+  v4.1 — 2026-04-12 · JLM
 */
 (function () {
   // ── Dominios validos conocidos (Espana + LATAM + globales) ─
@@ -379,31 +379,111 @@
     return null;
   }
 
-  // ── UI: caja de sugerencia (variante DARK — texto oscuro) ─
+  // ── UI: sugerencia en tiempo real + autocorreccion en submit ─
+  // (variante DARK — texto oscuro)
   function attach(input) {
     if (input.dataset.emailcheck) return;
     input.dataset.emailcheck = '1';
+
+    // Crear hint visual
     var hint = document.createElement('div');
     hint.style.cssText = 'font-size:13px;margin-top:6px;color:#1f2937;display:none;cursor:pointer;line-height:1.35;font-family:inherit';
     input.insertAdjacentElement('afterend', hint);
 
+    var showHint = function(sug) {
+      hint.innerHTML = '\u00bfQuisiste decir <b style="text-decoration:underline;color:#111827">' + sug + '</b>? <span style="color:#6b7280">(haz clic para corregir)</span>';
+      hint.style.display = 'block';
+      hint.onclick = function() {
+        input.value = sug;
+        input.dispatchEvent(new Event('input', {bubbles:true}));
+        input.dispatchEvent(new Event('change', {bubbles:true}));
+        hint.style.display = 'none';
+      };
+    };
+
     var validate = function() {
       var sug = checkEmail(input.value);
       if (sug && sug !== input.value.toLowerCase().trim()) {
-        hint.innerHTML = '\u00bfQuisiste decir <b style="text-decoration:underline;color:#111827">' + sug + '</b>? <span style="color:#6b7280">(haz clic para corregir)</span>';
-        hint.style.display = 'block';
-        hint.onclick = function() {
-          input.value = sug;
-          input.dispatchEvent(new Event('input', {bubbles:true}));
-          input.dispatchEvent(new Event('change', {bubbles:true}));
-          hint.style.display = 'none';
-        };
+        showHint(sug);
       } else {
         hint.style.display = 'none';
       }
     };
+
+    // ── Capa 1: sugerencia en tiempo real mientras escribe ────
+    // Se activa 400ms despues de que el usuario deja de teclear,
+    // solo cuando ya hay un dominio con al menos 2 chars tras el punto
+    // (para no sugerir prematuramente con ".co" cuando aun esta
+    // escribiendo ".com").
+    var debounceTimer = null;
+    input.addEventListener('input', function() {
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(function() {
+        var val = input.value;
+        var atIdx = val.indexOf('@');
+        if (atIdx < 0) return;
+        var domain = val.substring(atIdx + 1);
+        var dotIdx = domain.lastIndexOf('.');
+        // Solo comprobar si hay al menos 2 chars tras el ultimo punto
+        // Asi ".co" no dispara sugerencia mientras escribe ".com"
+        if (dotIdx >= 0 && domain.length - dotIdx - 1 >= 2) {
+          validate();
+        }
+      }, 400);
+    });
+
+    // Mantener blur/change como fallback
     input.addEventListener('blur', validate);
     input.addEventListener('change', validate);
+
+    // ── Capa 2: autocorreccion silenciosa al pulsar el boton ──
+    // Busca el boton de submit del formulario y se engancha a su
+    // click. Cuando se pulsa, corrige el email en microsegundos
+    // ANTES de que GHL procese el submit. El usuario no ve nada.
+    var attachSubmitGuard = function() {
+      // Buscar el form padre o el boton de submit mas cercano
+      var form = input.closest('form');
+      var btn = null;
+      if (form) {
+        btn = form.querySelector('button[type="submit"], input[type="submit"], button:not([type])');
+      }
+      // GHL a veces no usa <form> sino divs con un boton
+      if (!btn) {
+        var parent = input.parentElement;
+        while (parent && parent !== document.body) {
+          btn = parent.querySelector('button[type="submit"], button.btn-submit, a.btn-submit, button:not([type="button"])');
+          if (btn) break;
+          parent = parent.parentElement;
+        }
+      }
+      if (!btn || btn.dataset.emailguard) return;
+      btn.dataset.emailguard = '1';
+
+      btn.addEventListener('click', function() {
+        // Buscar todos los inputs de email enganchados en este contexto
+        var emailInputs = (form || document).querySelectorAll('input[data-emailcheck]');
+        for (var i = 0; i < emailInputs.length; i++) {
+          var inp = emailInputs[i];
+          var sug = checkEmail(inp.value);
+          if (sug && sug !== inp.value.toLowerCase().trim()) {
+            // Autocorregir silenciosamente antes de que GHL lea el valor
+            inp.value = sug;
+            inp.dispatchEvent(new Event('input', {bubbles:true}));
+            inp.dispatchEvent(new Event('change', {bubbles:true}));
+            // Ocultar hint si estaba visible
+            var hintEl = inp.nextElementSibling;
+            if (hintEl && hintEl.style && hintEl.onclick) {
+              hintEl.style.display = 'none';
+            }
+          }
+        }
+      }, true); // useCapture=true para ejecutarse ANTES que el listener de GHL
+    };
+
+    // Intentar enganchar ahora y tambien con delay (GHL renderiza async)
+    attachSubmitGuard();
+    setTimeout(attachSubmitGuard, 500);
+    setTimeout(attachSubmitGuard, 1500);
   }
 
   function scan() {

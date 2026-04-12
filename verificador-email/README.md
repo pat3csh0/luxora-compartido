@@ -2,9 +2,14 @@
 
 Cuando alguien rellena un formulario en tu landing y escribe mal su email (por ejemplo `gmail.con` en vez de `gmail.com`), ese contacto llega a tu CRM como inválido: no puedes enviarle emails, tu tasa de rebote sube y tu dominio pierde reputación.
 
-Este verificador detecta esos errores **en el momento**, antes de que el usuario envíe el formulario, y le muestra un aviso clicable para corregirlo en un solo toque. Sin códigos de verificación, sin pasos extra, sin fricción.
+Este verificador detecta esos errores **en el momento** y los corrige de dos formas complementarias:
 
-**No bloquea el envío.** Solo informa. Si el usuario ignora la sugerencia, el formulario se envía igualmente. Pero en la práctica, la mayoría acepta la corrección.
+1. **Mientras el usuario escribe:** muestra un aviso clicable debajo del campo con la corrección sugerida. El usuario la acepta con un toque si la ve.
+2. **Al pulsar el botón de envío:** si el usuario no vio o no aceptó la sugerencia, el verificador corrige el email automáticamente en ese instante, antes de que los datos lleguen al CRM. Es invisible, instantáneo y no bloquea el envío.
+
+Sin códigos de verificación, sin pasos extra, sin fricción. El contacto siempre llega limpio al CRM.
+
+**Funciona incluso en formularios simples** (nombre + email + botón) donde el usuario escribe el email y pulsa enviar directamente sin detenerse. La corrección automática en el botón lo resuelve.
 
 ## Qué errores detecta
 
@@ -106,13 +111,13 @@ Pega **una única línea** en *Settings → Tracking Code → Footer* de tu land
 **Si tu landing tiene fondo OSCURO:**
 
 ```html
-<script src="https://cdn.jsdelivr.net/gh/pat3csh0/luxora-compartido@v4.0.0/verificador-email/email-typo-checker-light.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/pat3csh0/luxora-compartido@v4.1.0/verificador-email/email-typo-checker-light.js"></script>
 ```
 
 **Si tu landing tiene fondo CLARO:**
 
 ```html
-<script src="https://cdn.jsdelivr.net/gh/pat3csh0/luxora-compartido@v4.0.0/verificador-email/email-typo-checker-dark.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/pat3csh0/luxora-compartido@v4.1.0/verificador-email/email-typo-checker-dark.js"></script>
 ```
 
 > Si quieres que funcione en **todas las páginas del funnel** de una vez (opt-ins, thank-you pages, etc.), pégalo en *Funnel Settings → Tracking Code → Footer* en lugar de en la landing individual.
@@ -138,10 +143,10 @@ Si pulsas la sugerencia, el campo se autocompleta con la versión correcta.
 
 | Versión | Qué usar en la URL | Comportamiento |
 |---|---|---|
-| `@v4.0.0` | Versión fija, nunca cambia | Recomendada si quieres control total |
+| `@v4.1.0` | Versión fija, nunca cambia | Recomendada si quieres control total |
 | `@main` | Siempre la última publicada | Recibes mejoras automáticas sin tocar nada |
 
-Las versiones fijas (`@v4.0.0`, `@v3.0.0`, etc.) siguen funcionando indefinidamente. Cuando salga una nueva, se publicará aquí y podrás actualizar cambiando solo el número de versión en tu Tracking Code.
+Las versiones fijas (`@v4.1.0`, `@v3.0.0`, etc.) siguen funcionando indefinidamente. Cuando salga una nueva, se publicará aquí y podrás actualizar cambiando solo el número de versión en tu Tracking Code.
 
 Todas las versiones: https://github.com/pat3csh0/luxora-compartido/tags
 
@@ -149,7 +154,7 @@ Todas las versiones: https://github.com/pat3csh0/luxora-compartido/tags
 
 - **Formularios en iframe:** si el formulario está embebido como iframe en una web externa (ej. WordPress), el script no puede acceder a él (restricción del navegador). Solución: cambiar el embed a inline o usar Custom JS dentro del propio Form Builder de GHL.
 - **No valida que el email exista realmente.** Solo comprueba que el dominio esté bien escrito. No hace verificación SMTP ni consulta de servidores MX.
-- **No bloquea el envío.** Es intencional: preferimos no añadir fricción. Si el usuario ignora la sugerencia, el contacto llega al CRM tal cual.
+- **No bloquea el envío.** Es intencional: preferimos no añadir fricción. Si el verificador no detecta el error, el formulario se envía tal cual.
 
 ## Reportar errores no detectados
 
@@ -161,21 +166,44 @@ Si encuentras un email mal escrito que el verificador no detecta, [abre un issue
 
 > Esta sección es para desarrolladores y curiosos. No necesitas entender nada de esto para usar el verificador.
 
-### Pipeline de detección (6 pasos en cascada)
+### Dos capas de protección
 
-Cuando el usuario sale del campo de email, el verificador ejecuta esta secuencia sobre el dominio (la parte después de la `@`):
+El verificador actúa en dos momentos distintos:
+
+**Capa 1 — Sugerencia en tiempo real (mientras escribe):**
+
+Cada vez que el usuario deja de teclear durante 400ms y ya hay un dominio escrito (al menos 2 caracteres después del punto), se analiza el email y, si hay un error, aparece la sugerencia debajo del campo. El usuario puede aceptarla con un clic.
+
+Esto funciona bien en formularios largos donde el usuario pasa a otro campo después del email y tiene tiempo de ver la sugerencia antes de enviar.
+
+**Capa 2 — Autocorrección silenciosa (al pulsar el botón):**
+
+El script se engancha al botón de envío del formulario con `useCapture=true`, lo que garantiza que se ejecuta **antes** que el código de GHL. Cuando el usuario pulsa "Reservar Plaza" (o el botón que sea), el script:
+
+1. Lee el email del campo
+2. Lo pasa por el pipeline de detección
+3. Si encuentra un error, corrige el valor del campo al instante
+4. Deja pasar el envío normalmente
+
+GHL recibe el valor ya corregido. Todo ocurre en microsegundos, de forma invisible. No hay pausa, no hay bloqueo, no hay diálogo de confirmación.
+
+Esta capa es especialmente útil en formularios simples (nombre + email + botón) donde el usuario escribe el email y pulsa enviar directamente sin detenerse.
+
+### Pipeline de detección (7 pasos en cascada)
+
+Cada vez que se necesita analizar un email (ya sea por la capa 1 o la capa 2), se ejecuta esta secuencia sobre el dominio (la parte después de la `@`):
 
 ```
-1. ¿Es un dominio válido conocido? → No sugerir nada
-2. ¿Está en el diccionario de typos exactos (TYPO_MAP)? → Sugerir corrección directa
+1. ¿Es un dominio válido conocido? → No tocar nada
+2. ¿Está en el diccionario de typos exactos (+180 entradas)? → Corrección directa
 3. ¿La terminación (.con, .cmo, .esr...) es un TLD roto? → Reparar y re-evaluar
 4. ¿Tiene segmentos de más? (gmail.con.com) → Quitar el último y re-evaluar
 5. ¿Tiene basura pegada después de un dominio válido? (gmail.commeil.com) → Limpiar
 6. ¿El nombre del proveedor y la terminación están mal por separado? → Evaluar cada parte
-7. ¿Se parece a algún dominio conocido? → Sugerir el más cercano (Sift3)
+7. ¿Se parece a algún dominio conocido? → Sugerir el más cercano (algoritmo Sift3)
 ```
 
-Cada paso que encuentra solución detiene el pipeline. Si ninguno encuentra nada, no se muestra sugerencia (para evitar falsos positivos con dominios corporativos legítimos).
+Cada paso que encuentra solución detiene el pipeline. Si ninguno encuentra nada, no se modifica el email (para evitar falsos positivos con dominios corporativos legítimos).
 
 ### Algoritmo de distancia: Sift3
 
@@ -201,6 +229,6 @@ Funciona en todos los navegadores modernos (Chrome, Firefox, Safari, Edge). Usa 
 
 ---
 
-Mantenido por **JLM** — v4.0.0 · abril 2026
+Mantenido por **JLM** — v4.1.0 · abril 2026
 
 Uso libre. Si lo modificas y mejoras, comparte la mejora.
