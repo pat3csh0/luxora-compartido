@@ -21,6 +21,11 @@
   // Nombres que parecen campos reales para enganar bots avanzados.
   // Se rota aleatoriamente para que los bots que hacen blacklist
   // de nombres de campo no puedan excluirlos.
+  // WeakMap para almacenar las refs del honeypot fuera del DOM
+  // (evita DOM clobbering — un atacante no puede sobreescribir esto
+  // inyectando un elemento con name="_honeypotInput")
+  var honeypotRefs = new WeakMap();
+
   var fieldNames = ['website', 'url', 'company_url', 'homepage', 'site_url'];
   var fieldName = fieldNames[Math.floor(Math.random() * fieldNames.length)];
 
@@ -61,8 +66,18 @@
     // que rellenan en orden lo encuentren antes)
     form.insertBefore(wrapper, form.firstChild);
 
-    // ── Guardar referencia para la verificacion ─────────────
-    form._honeypotInput = input;
+    // ── Guardar referencia en WeakMap (evita DOM clobbering) ──
+    honeypotRefs.set(form, input);
+
+    // ── Sobreescribir form.submit() para que bots que llaman
+    //    HTMLFormElement.prototype.submit.call(form) directamente
+    //    (sin disparar el evento submit) tambien sean bloqueados ──
+    var origSubmit = form.submit.bind(form);
+    form.submit = function() {
+      var hp = honeypotRefs.get(form);
+      if (hp && hp.value && hp.value.length > 0) return; // bot
+      origSubmit();
+    };
   }
 
   // ── Interceptar el submit ─────────────────────────────────
@@ -72,7 +87,7 @@
 
     // useCapture=true para ejecutarse ANTES que cualquier otro listener
     form.addEventListener('submit', function(e) {
-      var hp = form._honeypotInput;
+      var hp = honeypotRefs.get(form);
       if (hp && hp.value && hp.value.length > 0) {
         // Bot detectado: el campo honeypot tiene valor
         e.preventDefault();
@@ -91,7 +106,7 @@
         if (btn.dataset.honeypotBtn) return;
         btn.dataset.honeypotBtn = '1';
         btn.addEventListener('click', function(e) {
-          var hp = form._honeypotInput;
+          var hp = honeypotRefs.get(form);
           if (hp && hp.value && hp.value.length > 0) {
             e.preventDefault();
             e.stopImmediatePropagation();

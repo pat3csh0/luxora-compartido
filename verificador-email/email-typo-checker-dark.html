@@ -408,7 +408,21 @@
     input.insertAdjacentElement('afterend', hint);
 
     var showHint = function(sug) {
-      hint.innerHTML = '\u00bfQuisiste decir <b style="text-decoration:underline;color:#111827">' + sug + '</b>? <span style="color:#6b7280">(haz clic para corregir)</span>';
+      // Construir el hint con DOM seguro (no innerHTML) para evitar XSS
+      // si el local part del email contuviera HTML malicioso
+      hint.textContent = '';
+      var t1 = document.createTextNode('\u00bfQuisiste decir ');
+      var b = document.createElement('b');
+      b.style.cssText = 'text-decoration:underline;color:#111827';
+      b.textContent = sug;
+      var t2 = document.createTextNode('? ');
+      var span = document.createElement('span');
+      span.style.color = '#9ca3af';
+      span.textContent = '(haz clic para corregir)';
+      hint.appendChild(t1);
+      hint.appendChild(b);
+      hint.appendChild(t2);
+      hint.appendChild(span);
       hint.style.display = 'block';
       hint.onclick = function() {
         input.value = sug;
