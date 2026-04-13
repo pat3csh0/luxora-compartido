@@ -192,34 +192,4 @@
   // Escanear ahora + cada vez que GHL re-renderice
   scan();
   new MutationObserver(scan).observe(document.body, {childList: true, subtree: true});
-
-  // ── API de debug (opt-in) ──────────────────────────────────
-  // Solo se expone si el <script> tag lleva data-antibot-debug.
-  // Uso: <script src="anti-bots.js" data-antibot-debug></script>
-  // Sirve para la herramienta anti-bots-tester. Read-only: no permite
-  // desactivar la proteccion, solo leer el estado.
-  var cs = document.currentScript;
-  if (cs && cs.hasAttribute('data-antibot-debug')) {
-    window.__antiBotDebug = {
-      version: '1.0',
-      // Lista de forms y popups que ya fueron procesados por el anti-bot.
-      listForms: function() {
-        return Array.prototype.slice.call(
-          document.querySelectorAll('[data-honeypot-injected]')
-        );
-      },
-      // Estado del honeypot de un form concreto.
-      getState: function(form) {
-        var hp = getHoneypot(form);
-        if (!hp) return null;
-        return {
-          fieldName: form.dataset.honeypotField || null,
-          value: hp.input.value,
-          wasTouched: hp.touched(),
-          guarded: form.dataset.honeypotGuarded === '1'
-        };
-      },
-      isBotDetected: isBotDetected
-    };
-  }
 })();

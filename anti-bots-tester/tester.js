@@ -8,11 +8,13 @@
 
   Requisitos de la pagina:
   - anti-bots.js v1.0+ ya cargado (marca los forms con data-honeypot-injected)
-  - Opcional: data-antibot-debug en el <script> del anti-bot, para exponer
-    window.__antiBotDebug y poder leer el flag wasTouched en vivo.
+
+  Lee solo datos del DOM y observa comportamiento del submit. No depende
+  de APIs internas del anti-bot: asi el anti-bot no expone un oraculo que
+  un atacante podria usar para probar tecnicas de bypass en bucle.
 
   Sin dependencias. Vanilla JS. Prefijo .abt-* para aislar estilos.
-  v0.1 — 2026-04-13 · JLM
+  v0.2 — 2026-04-13 · JLM
 */
 (function() {
   if (window.__abtTester) {
@@ -152,23 +154,21 @@
     return state.forms[state.selectedIndex] || null;
   }
 
-  // Estado del honeypot: usa __antiBotDebug si esta disponible;
-  // si no, lee solo lo que el DOM expone.
+  // Estado del honeypot leido estrictamente del DOM. Sin oraculo interno.
+  // El flag "touched" es local al tester (lo trackeamos nosotros cuando
+  // rellenamos desde aqui), no lo pedimos al anti-bot.
+  var localTouched = new WeakMap();
+  function markTouched(form) { localTouched.set(form, true); }
+  function isLocallyTouched(form) { return localTouched.get(form) === true; }
+
   function readHoneypotState(target) {
     if (!target) return null;
-    var dbg = window.__antiBotDebug;
-    if (dbg && typeof dbg.getState === 'function') {
-      var s = dbg.getState(target.el);
-      if (s) return { fieldName: s.fieldName, value: s.value, wasTouched: s.wasTouched, guarded: s.guarded, source: 'debug' };
-    }
-    // Fallback sin debug API
     var val = target.input ? target.input.value : '';
     return {
       fieldName: target.fieldName,
       value: val,
-      wasTouched: null,
       guarded: target.el.dataset.honeypotGuarded === '1',
-      source: 'dom'
+      touchedInSession: isLocallyTouched(target.el)
     };
   }
 
@@ -202,7 +202,8 @@
     setNativeValue(t.input, val);
     t.input.dispatchEvent(new Event('input', { bubbles: true }));
     t.input.dispatchEvent(new Event('change', { bubbles: true }));
-    log('warn', 'Campo relleno con "' + val + '". wasTouched quedar\u00e1 true aunque lo limpies.');
+    markTouched(t.el);
+    log('warn', 'Campo relleno con "' + val + '". Aunque lo limpies, el anti-bot recordar\u00e1 que fue tocado hasta que recargues.');
     renderState();
   }
 
@@ -211,16 +212,10 @@
     if (!t || !t.input) { log('err', 'No hay formulario objetivo.'); return; }
     setNativeValue(t.input, '');
     t.input.dispatchEvent(new Event('input', { bubbles: true }));
-    var dbg = window.__antiBotDebug;
-    if (dbg) {
-      var stillTouched = (dbg.getState(t.el) || {}).wasTouched;
-      if (stillTouched === true) {
-        log('warn', 'Campo limpiado. wasTouched sigue true (dise\u00f1o): el form seguir\u00e1 bloqueado hasta recargar.');
-      } else {
-        log('ok', 'Campo limpiado.');
-      }
+    if (isLocallyTouched(t.el)) {
+      log('warn', 'Campo limpiado visualmente. Como lo rellenaste antes, el anti-bot lo recuerda y seguir\u00e1 bloqueando hasta que recargues.');
     } else {
-      log('warn', 'Campo limpiado. Sin debug API no se puede verificar wasTouched: recarga para garantizar un reset limpio.');
+      log('ok', 'Campo limpiado.');
     }
     renderState();
   }
@@ -238,19 +233,15 @@
     if (!t) { log('err', 'No hay formulario objetivo.'); return; }
     var form = t.el;
 
-    // Capturamos el estado ANTES del submit. Tras el submit, el campo puede
-    // haberse limpiado o el DOM re-renderizado, y la evaluacion posterior
-    // seria ambigua (especialmente sin debug API, donde wasTouched no es legible).
-    var preHp = readHoneypotState(t);
-    var preShouldBlock = preHp && (
-      preHp.wasTouched === true ||
-      (preHp.value && preHp.value.length > 0)
-    );
-    var hadDebug = preHp && preHp.source === 'debug';
+    // El tester NO interroga el estado interno del anti-bot. Observa el
+    // comportamiento: dispara un submit y mira si sobrevive al guard.
+    // Si el form fue "rellenado en esta sesion", lo sabemos nosotros.
+    var preFilled = (t.input && t.input.value && t.input.value.length > 0);
+    var preTouched = isLocallyTouched(form);
+    var expectedBlock = preFilled || preTouched;
 
-    // Listener bubble para detectar si el submit sobrevivio al guard del anti-bot.
-    // El anti-bot registra en capture=true y llama stopImmediatePropagation cuando
-    // detecta bot: no llegaria aqui. Si llega, significa que el anti-bot lo permitio.
+    // Listener bubble: si el submit llega hasta aqui, significa que el
+    // anti-bot no lo bloqueo (porque usa stopImmediatePropagation en capture).
     var reached = false;
     var bubbleListener = function(e) {
       reached = true;
@@ -279,22 +270,23 @@
       log('err', 'Error al intentar enviar: ' + (err && err.message));
     }
 
-    // Dar un tick al navegador y evaluar contra el estado PRE-submit capturado.
+    // Dar un tick al navegador y evaluar comportamiento observado.
     setTimeout(function() {
       form.removeEventListener('submit', bubbleListener, false);
       if (reached) {
-        if (preShouldBlock) {
+        if (expectedBlock) {
           log('err', 'FALLO: submit pas\u00f3 pese a tener el honeypot activado. \u00bfAnti-bot no est\u00e1 guardando este form?');
         } else {
           log('ok', 'Submit PERMITIDO (honeypot vac\u00edo \u2014 happy path correcto).');
         }
       } else {
-        if (preShouldBlock) {
-          log('ok', 'Submit BLOQUEADO por anti-bot (esperado con honeypot activado).');
-        } else if (!hadDebug) {
-          log('warn', 'Sin debug API no se puede distinguir "no se dispar\u00f3 submit" de "bloqueado por wasTouched". Activa data-antibot-debug para claridad.');
+        if (expectedBlock) {
+          var extra = preFilled
+            ? ' (con honeypot relleno)'
+            : ' (honeypot vac\u00edo pero fue tocado antes \u2014 anti-bot recuerda)';
+          log('ok', 'Submit BLOQUEADO por anti-bot' + extra + '.');
         } else {
-          log('warn', 'No se detect\u00f3 submit. Puede que el bot\u00f3n no dispare submit nativo.');
+          log('warn', 'Submit no lleg\u00f3. El bot\u00f3n puede no disparar submit nativo, o el form se reinicio.');
         }
       }
       renderState();
@@ -472,15 +464,11 @@
     var t = currentTarget();
     var hp = readHoneypotState(t);
     var scriptOk = !!document.querySelector('[data-honeypot-injected]');
-    var dbg = !!window.__antiBotDebug;
     var rows = [];
 
     rows.push(row('Script anti-bot', scriptOk
       ? '<span class="abt-ok">\u2713 detectado</span>'
       : '<span class="abt-err">\u2717 no detectado</span>'));
-    rows.push(row('Modo debug', dbg
-      ? '<span class="abt-ok">\u2713 activo (' + (dbg && window.__antiBotDebug.version) + ')</span>'
-      : '<span class="abt-muted">off (no ves wasTouched)</span>'));
 
     if (!hp) {
       rows.push(row('Campo honeypot', '<span class="abt-muted">\u2014</span>'));
@@ -489,13 +477,9 @@
       rows.push(row('Valor actual', hp.value
         ? '<span class="abt-warn">"' + esc(truncate(hp.value, 24)) + '"</span>'
         : '<span class="abt-muted">""</span>'));
-      if (hp.wasTouched === true) {
-        rows.push(row('wasTouched', '<span class="abt-err">true (form bloqueado)</span>'));
-      } else if (hp.wasTouched === false) {
-        rows.push(row('wasTouched', '<span class="abt-ok">false</span>'));
-      } else {
-        rows.push(row('wasTouched', '<span class="abt-muted">desconocido</span>'));
-      }
+      rows.push(row('Rellenado en sesi\u00f3n', hp.touchedInSession
+        ? '<span class="abt-err">s\u00ed (bloqueo persistir\u00e1 hasta recargar)</span>'
+        : '<span class="abt-ok">no</span>'));
       rows.push(row('Guard submit', hp.guarded
         ? '<span class="abt-ok">\u2713 activo</span>'
         : '<span class="abt-warn">no activo</span>'));

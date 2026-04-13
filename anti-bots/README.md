@@ -36,6 +36,9 @@ Este honeypot bloquea bots que **ejecutan JavaScript** y rellenan campos del DOM
 
 No bloquea bots que envían peticiones HTTP directas (POST) sin cargar la página. Contra esos, GHL ya tiene protección server-side (validación de sesión, reCAPTCHA interno). El honeypot cubre la otra mitad del problema.
 
+Para un desglose detallado con porcentajes estimados por tipo de bot y cuándo
+conviene añadir capas extra (Turnstile, reCAPTCHA), lee [EFFECTIVENESS.md](EFFECTIVENESS.md).
+
 ## Instalación
 
 Pega esta línea en *Settings → Tracking Code → Footer* de tu landing o funnel:

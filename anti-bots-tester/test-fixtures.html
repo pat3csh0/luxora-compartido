@@ -28,12 +28,12 @@
 <body>
 <div class="wrap">
   <h1>Fixtures de QA · Tester anti-bot</h1>
-  <p class="lead">Página local para probar el panel contra los 3 patrones soportados por el anti-bot. Abre la consola si quieres ver <code>window.__antiBotDebug</code>.</p>
+  <p class="lead">Página local para probar el panel contra los 3 patrones soportados por el anti-bot.</p>
 
   <div class="note">
     <strong>Cómo probar:</strong>
     1) Haz drag del bookmarklet desde <a href="index.html">index.html</a> a la barra de marcadores, o pega manualmente <code>&lt;script src="tester.js"&gt;</code> en esta página.
-    2) Al final de este documento se carga <code>../anti-bots/anti-bots.js</code> con <code>data-antibot-debug</code> para exponer el API de debug.
+    2) Al final de este documento se carga <code>../anti-bots/anti-bots.js</code>. El tester observa el comportamiento del submit; no lee estado interno del anti-bot.
     3) Sigue el flujo: Detectar → Rellenar → Intentar enviar (BLOQUEADO) → Recargar → Intentar enviar sin rellenar (PERMITIDO).
   </div>
 
@@ -82,8 +82,8 @@
     </div>
   </div>
 
-  <!-- Cargar el anti-bot con debug activado -->
-  <script src="../anti-bots/anti-bots.js" data-antibot-debug></script>
+  <!-- Cargar el anti-bot en modo produccion (sin debug API expuesta) -->
+  <script src="../anti-bots/anti-bots.js"></script>
 
   <!-- Auto-cargar el tester (comodo para QA local). En produccion se carga via bookmarklet. -->
   <script src="tester.js"></script>

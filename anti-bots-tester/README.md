@@ -41,27 +41,22 @@ repo se sirve desde otro host (por ejemplo un mirror o un preview).
    - **Recargar** → reset de `wasTouched`.
    - **Intentar enviar** sin rellenar → debe quedar PERMITIDO.
 
-## Modo debug del anti-bot (opcional pero recomendado)
+## Cómo lee el estado
 
-Para leer el flag interno `wasTouched` en vivo desde el panel, añade el
-atributo `data-antibot-debug` al script del anti-bot:
+El tester **no interroga al anti-bot** — observa el comportamiento externo:
 
-```html
-<script src="https://pat3csh0.github.io/luxora-compartido/anti-bots/anti-bots.js"
-        data-antibot-debug></script>
-```
+- Lee del DOM: el nombre del campo honeypot (`data-honeypot-field`), su valor
+  actual, y si el form está guardado (`data-honeypot-guarded`).
+- Trackea localmente qué forms fueron rellenados por el propio tester en esta
+  sesión. Cuando informa *"Rellenado en sesión: sí"*, es porque tú lo hiciste
+  desde aquí, no porque lo haya consultado al anti-bot.
+- Para saber si un submit sería bloqueado: dispara un intento de submit real
+  y mira si el evento sobrevive al guard del anti-bot. Si no sobrevive → fue
+  bloqueado. Si sobrevive → fue permitido.
 
-Esto expone `window.__antiBotDebug` con una API read-only:
-
-```js
-window.__antiBotDebug.version        // "1.0"
-window.__antiBotDebug.listForms()    // Array<HTMLElement>
-window.__antiBotDebug.getState(form) // { fieldName, value, wasTouched, guarded }
-window.__antiBotDebug.isBotDetected(form) // boolean
-```
-
-Sin el atributo, el tester sigue funcionando pero el campo `wasTouched` aparece
-como *desconocido* (no afecta a la funcionalidad, solo al reporte visual).
+Esta aproximación conductual es intencional: el anti-bot **no expone ningún
+API interno de debug** (decisión de seguridad). Si lo expusiera, un atacante
+podría usar ese API como oráculo para probar técnicas de bypass en bucle.
 
 ## QA local
 

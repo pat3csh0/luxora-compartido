@@ -6,6 +6,22 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.0.0/).
 
 ---
 
+## [v4.3.1] — 2026-04-13
+
+### Anti-bots: quitar API de debug por seguridad
+- **Breaking para tester**: se elimina `window.__antiBotDebug` y el atributo `data-antibot-debug`. Exponer el estado interno creaba un oráculo que un atacante podría usar para probar bypasses en bucle. Ahora el anti-bot no expone ningún API externo.
+- Si tenías `data-antibot-debug` en tu Tracking Code, quítalo. No es necesario y ya no hace nada.
+
+### Anti-bots-tester (v0.2)
+- Refactor a **observación conductual**: el tester ya no interroga al anti-bot, observa el comportamiento externo del submit.
+- Trackea localmente qué forms rellenó (WeakMap interno) para mostrar "Rellenado en sesión: sí/no" en lugar del antiguo `wasTouched`.
+- El flujo QA y los botones son idénticos; solo cambia que la info aparece tras "Intentar enviar" en vez de en una columna live.
+
+### Nuevo documento
+- `anti-bots/EFFECTIVENESS.md`: estimaciones empíricas de % de bots bloqueados por categoría, cuándo escalar a Turnstile/reCAPTCHA, tabla coste/valor de capas adicionales.
+
+---
+
 ## [v4.3.0] — 2026-04-13
 
 ### Nueva herramienta: Anti-bots Tester (v0.1)
