@@ -12,6 +12,7 @@ Pensado para que cualquier usuario de Luxora pueda copiar el código de este rep
 | [`validador-telefono/`](validador-telefono/) | Limpia formato de teléfonos y avisa si faltan/sobran dígitos. Compatible con selector de países de GHL | [Ver README](validador-telefono/README.md) |
 | [`validador-nif/`](validador-nif/) | Valida DNI, NIE y CIF españoles. Detecta automáticamente el campo por el label | [Ver README](validador-nif/README.md) |
 | [`anti-bots/`](anti-bots/) | Honeypot invisible que bloquea bots de spam sin afectar a usuarios reales | [Ver README](anti-bots/README.md) |
+| [`anti-bots-tester/`](anti-bots-tester/) | Tester visual (bookmarklet) que verifica en 30 segundos que el anti-bot está funcionando en tu landing | [Ver README](anti-bots-tester/README.md) |
 
 ## Instalación rápida
 

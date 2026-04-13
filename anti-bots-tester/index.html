@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Tester anti-bot · luxora-compartido</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Verifica en 30 segundos que tu landing GHL tiene el honeypot anti-bot instalado y bloquea envíos automáticos. Sin consola, sin instalar nada.">
+<style>
+  :root{
+    --bg:#0f1117; --panel:#ffffff; --ink:#1a1d24; --muted:#5a6070;
+    --line:#e5e8ef; --accent:#2b6cb0; --gold:#b98e3d;
+    --ok:#2f8f5c; --warn:#b77a1a; --err:#c53030;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font:16px/1.55 -apple-system,Segoe UI,Inter,Roboto,sans-serif;background:#f6f7fa;color:var(--ink)}
+  .wrap{max-width:920px;margin:0 auto;padding:48px 24px 96px}
+  header.top{display:flex;align-items:center;gap:14px;margin-bottom:8px}
+  .logo{width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,#1a1d24,#3a3f4a);display:grid;place-items:center;color:#d4b26a;font-size:22px}
+  h1{font-size:30px;margin:0;letter-spacing:-.2px}
+  .lead{color:var(--muted);margin:8px 0 40px;font-size:17px;max-width:640px}
+  h2{font-size:20px;margin:40px 0 14px;color:var(--ink)}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:28px;box-shadow:0 2px 10px rgba(20,20,50,.04)}
+
+  .fake-toolbar{margin:0 0 24px;padding:10px 14px;background:#eef1f5;border-radius:8px;display:flex;gap:14px;align-items:center;color:var(--muted);font-size:13px;border:1px dashed #c9cfdb}
+  .fake-toolbar::before{content:"📑 Barra de marcadores del navegador:";font-weight:600;color:#3a4050;margin-right:8px}
+
+  .steps{display:grid;gap:24px}
+  .step{display:grid;grid-template-columns:40px 1fr;gap:18px;align-items:start}
+  .step-num{width:34px;height:34px;border-radius:50%;background:var(--gold);color:#fff;display:grid;place-items:center;font-weight:700;font-size:16px}
+  .step h3{margin:0 0 6px;font-size:17px}
+  .step p{margin:0;color:var(--muted);font-size:15px}
+
+  .drag-zone{margin-top:14px;padding:22px;background:#fdf6e6;border:2px dashed var(--gold);border-radius:10px;display:flex;gap:18px;align-items:center;flex-wrap:wrap}
+  .bookmarklet-btn{display:inline-flex;align-items:center;gap:8px;padding:12px 22px;background:#1a1d24;color:#d4b26a !important;border:1px solid #d4b26a;border-radius:8px;text-decoration:none;font-weight:600;cursor:grab;user-select:none;font-size:15px}
+  .bookmarklet-btn:active{cursor:grabbing}
+  .drag-hint{color:#8a6d28;font-size:14px;max-width:280px}
+  .arrow{font-size:22px;color:#a68844}
+
+  code{background:#eef1f5;border:1px solid #dfe3ec;padding:1px 6px;border-radius:4px;font-size:13px;font-family:ui-monospace,Menlo,monospace}
+  .note{margin-top:20px;padding:14px 16px;background:#eef5fb;border-left:3px solid var(--accent);border-radius:6px;color:#26384d;font-size:14px}
+  .note strong{color:#0f1e32}
+
+  details{margin-top:12px;padding:14px 16px;background:#f6f7fa;border:1px solid var(--line);border-radius:8px}
+  details summary{cursor:pointer;font-weight:600;color:var(--ink)}
+  details[open] summary{margin-bottom:8px}
+  details p{margin:8px 0 0;color:var(--muted);font-size:14px}
+
+  footer.page{margin-top:56px;padding-top:24px;border-top:1px solid var(--line);color:var(--muted);font-size:13px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
+  a{color:var(--accent)}
+
+  @media (max-width:600px){
+    .wrap{padding:28px 18px 60px}
+    h1{font-size:24px}
+    .card{padding:20px}
+    .drag-zone{flex-direction:column;align-items:flex-start}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="logo" aria-hidden="true">🧪</div>
+    <h1>Tester anti-bot</h1>
+  </header>
+  <p class="lead">Verifica en 30 segundos que tu landing GHL tiene el honeypot anti-bot instalado y bloquea envíos automáticos. Sin consola, sin instalar nada.</p>
+
+  <div class="card">
+    <div class="fake-toolbar" aria-hidden="true">
+      <span>⭐ Favoritos</span><span>📁 Clientes</span><span>📁 GHL</span>
+      <span style="margin-left:auto">← arrastra aquí</span>
+    </div>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div>
+          <h3>Arrastra el botón a tu barra de marcadores</h3>
+          <p>Aparecerá como un marcador más. No se instala nada, no pide permisos. Puedes borrarlo cuando quieras.</p>
+          <div class="drag-zone">
+            <span class="arrow" aria-hidden="true">↑</span>
+            <!-- Bookmarklet: el href se reemplaza por JS para tener siempre la ultima version -->
+            <a class="bookmarklet-btn"
+               id="bmk"
+               href="javascript:void(0)"
+               title="Arrastra este botón a tu barra de marcadores"
+               aria-label="Bookmarklet Tester anti-bot — arrástralo a la barra de marcadores">
+              🧪 Tester anti-bot
+            </a>
+            <span class="drag-hint">Arrástralo <strong>hacia la barra de marcadores</strong>. No lo cliques aquí — solo funciona desde la barra, sobre tu landing.</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">2</div>
+        <div>
+          <h3>Abre tu landing GHL</h3>
+          <p>La que ya tiene el script <code>anti-bots.js</code> pegado en <em>Funnel → Settings → Tracking Code → Footer</em>.</p>
+          <div class="note">
+            <strong>¿Quieres ver <code>wasTouched</code> en vivo?</strong> Añade el atributo <code>data-antibot-debug</code> al script:<br>
+            <code>&lt;script src="…/anti-bots.js" data-antibot-debug&gt;&lt;/script&gt;</code><br>
+            Sin ese flag, el tester sigue funcionando pero no puede leer ese flag interno (no pasa nada, solo pierde un dato en el panel).
+          </div>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">3</div>
+        <div>
+          <h3>Haz clic en el marcador</h3>
+          <p>Aparece un panel flotante oscuro en la esquina inferior derecha. Desde ahí haces todo con botones.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">4</div>
+        <div>
+          <h3>Ejecuta el flujo de prueba</h3>
+          <p>
+            <strong>Detectar</strong> → debe encontrar el honeypot<br>
+            <strong>Rellenar</strong> → simula un bot<br>
+            <strong>Intentar enviar</strong> → debe quedar <span style="color:var(--err)"><strong>BLOQUEADO</strong></span><br>
+            <strong>Recargar</strong> → resetea <code>wasTouched</code><br>
+            <strong>Intentar enviar</strong> sin rellenar → debe quedar <span style="color:var(--ok)"><strong>PERMITIDO</strong></span>
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <h2>Preguntas frecuentes</h2>
+
+  <details>
+    <summary>¿Por qué un bookmarklet y no una web con un iframe a mi URL?</summary>
+    <p>Los formularios GHL viven en otro dominio (<code>leadconnectorhq.com</code> o el dominio del funnel). Un iframe cross-origin no puede leer su DOM — lo impide la política de seguridad del navegador (CORS). El bookmarklet corre dentro de tu propia página, con acceso total al honeypot y a los popups. Cero backend, cero envío de datos fuera de tu navegador.</p>
+  </details>
+
+  <details>
+    <summary>¿Funciona con popups GHL?</summary>
+    <p>Sí. El panel detecta automáticamente popups abiertos (<code>.hl_main_popup</code>, <code>.ghl-form-wrap</code>, etc.). Ábrelos y pulsa «Detectar» — aparecerán en el selector de formulario.</p>
+  </details>
+
+  <details>
+    <summary>¿Envía mis datos a algún servidor?</summary>
+    <p>No. Todo el tester corre en tu navegador. El toggle <em>«Permitir submit real»</em> está <strong>apagado por defecto</strong> para que tus pruebas no disparen envíos reales al endpoint de GHL. Actívalo solo cuando quieras validar el envío end-to-end.</p>
+  </details>
+
+  <details>
+    <summary>¿En móvil?</summary>
+    <p>Los bookmarklets funcionan regular en móvil. Para QA fiable, prueba en desktop (Chrome, Firefox o Safari). El panel es responsive por si necesitas abrirlo en pantalla pequeña.</p>
+  </details>
+
+  <details>
+    <summary>¿Qué es <code>wasTouched</code>?</summary>
+    <p>Una marca interna del anti-bot: se activa en cuanto el campo honeypot recibe cualquier input y <strong>no se puede desactivar</strong>. Así, un bot sofisticado que rellene y luego limpie el campo antes del submit sigue siendo detectado. Por eso, tras «Limpiar» hace falta «Recargar» para probar el happy path.</p>
+  </details>
+
+  <footer class="page">
+    <span>luxora-compartido · anti-bots-tester v0.1</span>
+    <span><a href="https://github.com/pat3csh0/luxora-compartido" target="_blank" rel="noopener">Repo</a></span>
+  </footer>
+</div>
+
+<script>
+(function(){
+  // El href del bookmarklet se construye en JS para que refleje la URL
+  // del tester.js servida desde este mismo origen (soporta mirrors y
+  // servidores locales). En produccion (GitHub Pages) sera la URL publica.
+  var origin = window.location.origin;
+  var path = window.location.pathname.replace(/[^\/]*$/,'');
+  var testerUrl = origin + path + 'tester.js';
+  // Defensa: si la URL contiene una comilla simple, dropback a la URL publica fija.
+  // Ademas validamos protocolo http(s) para no construir un javascript: anidado.
+  var SAFE_URL = 'https://pat3csh0.github.io/luxora-compartido/anti-bots-tester/tester.js';
+  if (testerUrl.indexOf("'") !== -1 || !/^https?:\/\//.test(testerUrl)) {
+    testerUrl = SAFE_URL;
+  }
+  var code = "(function(){if(window.__abtTester){window.__abtTester.open();return;}var s=document.createElement('script');s.src='" + testerUrl + "?'+Date.now();s.onerror=function(){alert('No se pudo cargar el tester anti-bot. Revisa la conexi\u00f3n.');};document.head.appendChild(s);})();";
+  var bmk = document.getElementById('bmk');
+  bmk.setAttribute('href', 'javascript:' + encodeURI(code));
+  // Si el usuario lo clica aqui en la landing, avisamos (no tiene efecto util)
+  bmk.addEventListener('click', function(e){
+    e.preventDefault();
+    alert('Este botón debe arrastrarse a la barra de marcadores.\n\nLuego ábrelo desde la barra cuando estés en tu landing GHL.');
+  });
+})();
+</script>
+</body>
+</html>

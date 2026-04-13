@@ -6,6 +6,21 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.0.0/).
 
 ---
 
+## [v4.3.0] — 2026-04-13
+
+### Nueva herramienta: Anti-bots Tester (v0.1)
+- Bookmarklet que inyecta un panel flotante en cualquier landing para verificar visualmente que el anti-bot está funcionando
+- Detecta el campo honeypot, permite rellenarlo, limpiarlo e intentar envíos simulados sin tocar consola
+- Soporta formularios nativos, contenedores builder GHL y popups (selector dinámico)
+- Atajos de teclado (D/R/L/Esc), historial de acciones, panel arrastrable y minimizable
+- Accesibilidad WCAG 2.1 AA (navegación por teclado, ARIA, contraste, no-color-only)
+- Persistencia en sessionStorage para sobrevivir al reload y completar el flujo end-to-end
+
+### Anti-bots (v1.0 → v1.0 + debug API)
+- **Nuevo:** atributo `data-antibot-debug` en el `<script>` expone `window.__antiBotDebug` (read-only) con `listForms()`, `getState()` e `isBotDetected()`. Permite al tester leer el flag `wasTouched` en vivo. Sin el atributo, el tester funciona igual pero sin visibilidad del flag interno.
+
+---
+
 ## [v4.2.0] — 2026-04-12
 
 ### Verificador de email
