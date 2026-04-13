@@ -14,7 +14,10 @@
   un atacante podria usar para probar tecnicas de bypass en bucle.
 
   Sin dependencias. Vanilla JS. Prefijo .abt-* para aislar estilos.
-  v0.2 — 2026-04-13 · JLM
+  v0.3 — 2026-04-13 · JLM
+    + compatible con anti-bots v1.1 (check de interaccion humana):
+      el tester dispara un pointerdown sintetico antes de cada submit
+      para que el check de interaccion no de falsos positivos en el QA.
 */
 (function() {
   if (window.__abtTester) {
@@ -233,6 +236,15 @@
     if (!t) { log('err', 'No hay formulario objetivo.'); return; }
     var form = t.el;
 
+    // El anti-bot v1.1 requiere que haya habido interaccion humana previa
+    // antes de permitir un submit. Al activar el tester via bookmarklet en
+    // una pagina recien cargada podria no haberla habido. Disparamos un
+    // pointerdown sintetico para garantizar que el check de interaccion
+    // pase — asi el tester evalua puramente el path del honeypot.
+    try {
+      document.dispatchEvent(new Event('pointerdown', { bubbles: true }));
+    } catch (e) { /* navegador sin soporte — no pasa nada */ }
+
     // El tester NO interroga el estado interno del anti-bot. Observa el
     // comportamiento: dispara un submit y mira si sobrevive al guard.
     // Si el form fue "rellenado en esta sesion", lo sabemos nosotros.
@@ -290,7 +302,7 @@
         }
       }
       renderState();
-    }, 120);
+    }, 200);
   }
 
   function actReload() {

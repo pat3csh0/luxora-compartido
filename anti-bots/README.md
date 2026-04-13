@@ -8,26 +8,38 @@ Este script protege tus formularios con un **honeypot invisible**: un campo ocul
 
 ## Cómo funciona
 
-1. El script inyecta un campo de texto invisible dentro de cada formulario de la página
-2. El campo está oculto con CSS (posición fuera de pantalla, sin opacidad, sin tamaño) pero sigue presente en el DOM
-3. Los bots lo detectan como un campo normal y lo rellenan automáticamente
-4. Al enviar el formulario, el script comprueba si el campo tiene valor:
-   - **Vacío** (humano) → el formulario se envía normalmente
-   - **Con valor** (bot) → se cancela el envío. GHL no recibe nada
+El anti-bot tiene **dos capas de detección**, ambas silenciosas y sin fricción para humanos reales:
 
-El bot no recibe ningún mensaje de error (para no darle pistas de que fue detectado).
+### Capa 1 · Honeypot invisible
+
+1. Inyecta un campo de texto en cada formulario con geometría real (200×40 px) pero clip-eado por un ancestro con `height:0; overflow:hidden`
+2. El bot ve un input "visible" (`getBoundingClientRect` devuelve rectángulo no-cero, `offsetParent` no es null) y lo rellena automáticamente
+3. El humano no lo ve porque está clip-eado fuera del flujo visible
+4. Si el campo tiene valor al enviar (o fue rellenado antes y luego limpiado), se cancela el envío silenciosamente
+
+### Capa 2 · Interacción humana requerida
+
+1. El script escucha los primeros eventos de interacción real en la página: `pointerdown`, `touchstart`, `keydown`, `mousemove`, `focusin`
+2. Cualquier usuario humano dispara al menos uno antes de enviar (mover el ratón, tocar la pantalla, pulsar una tecla, o que el navegador haga focus por autofill)
+3. Los bots que hacen `form.submit()` o `fetch()` programáticamente sin simular interacción no disparan ninguno
+4. Si el submit ocurre sin interacción previa, se cancela silenciosamente. Hay un *grace period* de 50ms para cubrir races con autofill
+
+El bot no recibe ningún mensaje de error. GHL no recibe datos. No hay workflow ejecutado.
 
 ## Técnicas anti-detección
 
-Los bots más avanzados intentan detectar y evitar honeypots. Este script usa varias técnicas para dificultarlo:
-
 | Técnica | Qué hace |
 |---|---|
-| No usa `display:none` | Los bots más listos ignoran campos con `display:none`. En su lugar, el campo se oculta con `position:absolute` + `left:-9999px` + `opacity:0` + `overflow:hidden` |
+| Honeypot con geometría real (v1.1) | Input 200×40 px clip-eado por ancestro. `getBoundingClientRect` devuelve tamaño no-cero → bots que chequean visibilidad por geometría piensan que es visible y lo rellenan |
+| No usa `display:none` | Los bots más listos ignoran campos con `display:none` |
 | Nombres de campo realistas | El campo se llama `website`, `url`, `company_url`, `homepage` o `site_url` (elegido aleatoriamente). Parecen campos reales |
+| Flag `wasTouched` irrevocable | Si un bot rellena el campo y luego lo limpia antes de enviar, el script sigue bloqueando. El flag se activa al primer `input`/`change` y no se puede desactivar |
+| Detección de interacción humana (v1.1) | Submit requiere al menos un evento `pointerdown`/`touchstart`/`keydown`/`mousemove`/`focusin` previo. Bots puramente programáticos fallan aquí |
+| Grace period 50ms (v1.1) | Cubre race conditions con autofill y focus automático del navegador: si la interacción llega 50ms tarde, el submit se re-dispara automáticamente |
 | `tabIndex=-1` | El campo no es accesible por teclado (Tab), así que un humano con discapacidad visual que navega con teclado tampoco lo rellena |
 | `autocomplete=off` | Evita que el autocompletado del navegador lo rellene |
 | `aria-hidden=true` | Los lectores de pantalla lo ignoran |
+| `pointer-events:none` | Si un humano hiciera clic donde está el campo clip-eado, no lo activaría |
 | Intercepta submit + click | Cubre tanto el evento `submit` del formulario como el `click` del botón (GHL a veces no usa `<form>` estándar) |
 
 ## Qué bots NO bloquea

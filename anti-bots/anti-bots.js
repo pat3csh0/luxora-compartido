@@ -14,7 +14,13 @@
 
   Vanilla JS, sin dependencias.
 
-  v1.0 — 2026-04-12 · JLM
+  v1.1 — 2026-04-13 · JLM
+    + Honeypot con geometria visible pero clip-eado por ancestro: derrota
+      bots que chequean visibilidad via getBoundingClientRect/offsetParent.
+    + Check de interaccion humana: bloquea submits sin ningun evento
+      pointerdown/touchstart/keydown/mousemove/focusin previo.
+    + Grace period de 50ms tras bloqueo por falta de interaccion para
+      cubrir race conditions con autofill/focus automatico.
 */
 (function() {
   // ── Configuracion del honeypot ────────────────────────────
@@ -28,6 +34,19 @@
 
   var fieldNames = ['website', 'url', 'company_url', 'homepage', 'site_url'];
 
+  // ── Tracker de interaccion humana ─────────────────────────
+  // Se activa con el primer evento de interaccion real. Un usuario que
+  // hace CUALQUIER cosa antes de enviar (tocar pantalla, mover raton,
+  // pulsar una tecla, que el navegador haga focus autofill) dispara uno
+  // de estos eventos. Un bot que hace form.submit() o dispatchEvent sin
+  // simular interaccion no los dispara.
+  var sawInteraction = false;
+  var interactionEvents = ['pointerdown', 'touchstart', 'keydown', 'mousemove', 'focusin'];
+  interactionEvents.forEach(function(ev) {
+    document.addEventListener(ev, function() { sawInteraction = true; },
+      { once: true, capture: true, passive: true });
+  });
+
   // ── Inyectar el honeypot ──────────────────────────────────
   function injectHoneypot(form) {
     if (form.dataset.honeypotInjected) return;
@@ -38,20 +57,20 @@
     var thisFieldName = fieldNames[Math.floor(Math.random() * fieldNames.length)];
 
     var wrapper = document.createElement('div');
-    // Tecnicas anti-deteccion: NO usar display:none (bots lo detectan).
-    // En su lugar, combinar overflow, height, opacity y position para
-    // hacerlo invisible a humanos pero presente en el DOM.
+    // Tecnicas anti-deteccion v1.1: el wrapper tiene height:0 y overflow:hidden
+    // para CLIP-ear al hijo, pero el INPUT tiene geometria real (200x40).
+    // Asi, bots que chequean visibilidad via getBoundingClientRect/offsetParent
+    // reciben dimensiones no-cero y creen que el campo es visible → lo rellenan
+    // → caen al honeypot. Humanos no lo ven porque el ancestro lo clip-ea.
+    // NO usamos display:none (trivial de detectar), ni left:-9999px (bots
+    // sofisticados chequean offset tambien).
     wrapper.setAttribute('aria-hidden', 'true');
     wrapper.style.cssText = [
-      'position:absolute',
-      'left:-9999px',
-      'top:-9999px',
-      'width:0',
+      'position:relative',
       'height:0',
       'overflow:hidden',
-      'opacity:0',
-      'z-index:-1',
-      'pointer-events:none'
+      'margin:0',
+      'padding:0'
     ].join(';');
 
     var input = document.createElement('input');
@@ -60,6 +79,17 @@
     input.id = 'hp_' + thisFieldName;
     input.tabIndex = -1;       // no accesible por tab
     input.autocomplete = 'off'; // no autocompletar
+    input.setAttribute('aria-hidden', 'true');
+    // Input con geometria real: bot ve rect 200x40. Humano no lo ve porque
+    // el wrapper lo clip-ea (height:0 + overflow:hidden).
+    input.style.cssText = [
+      'position:absolute',
+      'top:0',
+      'left:0',
+      'width:200px',
+      'height:40px',
+      'pointer-events:none'
+    ].join(';');
 
     wrapper.appendChild(input);
 
@@ -89,6 +119,7 @@
       var origSubmit = form.submit.bind(form);
       form.submit = function() {
         if (isBotDetected(form)) return;
+        if (!sawInteraction) return; // bot con form.submit() programatico
         origSubmit();
       };
     }
@@ -121,20 +152,60 @@
   }
 
   // ── Interceptar el submit ─────────────────────────────────
+  // Llamable varias veces por form: la primera registra el submit listener;
+  // las siguientes solo cubren botones nuevos que GHL pueda renderizar
+  // despues del scan inicial (lazy render del builder).
   function guardForm(form) {
-    if (form.dataset.honeypotGuarded) return;
+    if (form.dataset.honeypotGuarded) {
+      // Form ya guardado a nivel submit, pero pueden haber aparecido
+      // botones nuevos. Re-escanear solo para clicks.
+      guardButtons(form);
+      return;
+    }
     form.dataset.honeypotGuarded = '1';
 
     // useCapture=true para ejecutarse ANTES que cualquier otro listener
     form.addEventListener('submit', function(e) {
+      // Check 1: honeypot activado (bot que rellena todo)
       if (isBotDetected(form)) {
         e.preventDefault();
         e.stopImmediatePropagation();
         return false;
       }
+      // Check 2: falta de interaccion humana (bot que hace form.submit()
+      // programatico sin simular pointer/touch/keyboard)
+      if (!sawInteraction) {
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        // Grace period para cubrir race con autofill/focus automatico:
+        // si en 50ms aparece interaccion real, re-disparar el submit.
+        // Si no, queda bloqueado silenciosamente.
+        setTimeout(function() {
+          if (sawInteraction) {
+            // Usar requestSubmit si existe (dispara submit event, pasa por
+            // nuestro guard con sawInteraction ya true → permite). Si no,
+            // usar el prototype nativo para evitar nuestro override (que
+            // tambien chequea sawInteraction y podria bloquear en un race).
+            if (typeof form.requestSubmit === 'function') {
+              try { form.requestSubmit(); } catch (err) { /* noop */ }
+            } else if (typeof form.submit === 'function' &&
+                       typeof HTMLFormElement !== 'undefined' &&
+                       HTMLFormElement.prototype.submit) {
+              try { HTMLFormElement.prototype.submit.call(form); }
+              catch (err) { /* noop */ }
+            }
+          }
+        }, 50);
+        return false;
+      }
     }, true);
 
-    // Tambien escuchar click en botones de submit.
+    guardButtons(form);
+  }
+
+  // Escanear y atacar click listeners a los botones de submit del form.
+  // Extraido para poder re-llamarse cuando GHL renderiza botones nuevos.
+  function guardButtons(form) {
     // GHL usa varios patrones: <button type="submit">, <button> sin type,
     // <a> con clase submit, o simplemente el ultimo boton del contenedor.
     var btns = form.querySelectorAll('button[type="submit"], input[type="submit"], button:not([type]), button:not([type="button"]), .btn-submit, a.btn-submit, [data-form-submit], .hl_cta_btn');
@@ -145,7 +216,17 @@
         if (btn.dataset.honeypotBtn) return;
         btn.dataset.honeypotBtn = '1';
         btn.addEventListener('click', function(e) {
+          // Check honeypot
           if (isBotDetected(form)) {
+            e.preventDefault();
+            e.stopImmediatePropagation();
+            return false;
+          }
+          // Check interaccion: un click humano real SIEMPRE viene precedido
+          // de pointerdown/touchstart/keydown. Si sawInteraction es false
+          // aqui, es un click sintetico (button.click() programatico de un
+          // bot que no simulo eventos de pointer). Sin grace period.
+          if (!sawInteraction) {
             e.preventDefault();
             e.stopImmediatePropagation();
             return false;

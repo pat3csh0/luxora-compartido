@@ -6,6 +6,24 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es/1.0.0/).
 
 ---
 
+## [v4.4.0] — 2026-04-13
+
+### Anti-bots v1.1 — defensas contra bots con check de visibilidad real
+- **Honeypot con geometría visible pero clip-eado**: cambio de `position:absolute; left:-9999px` (geometría 0×0, fácil de detectar) a wrapper `height:0; overflow:hidden` con input dentro `width:200px; height:40px`. `getBoundingClientRect()` devuelve rectángulo no-cero, engañando a bots que chequean visibilidad por geometría. Humanos no lo ven porque el ancestro lo clip-ea.
+- **Detección de interacción humana**: el submit solo se permite si hubo al menos un evento `pointerdown`, `touchstart`, `keydown`, `mousemove` o `focusin` previo. Bloquea bots que llaman `form.submit()` o `fetch()` programáticamente sin simular interacción.
+- **Grace period 50ms**: si el submit llega antes que la interacción (race con autofill/focus automático), espera 50ms y reintenta. Cubre casos extremos sin afectar la UX humana.
+- Click handler también checkea interacción (sin grace, los clics humanos vienen siempre precedidos de pointerdown).
+- `guardForm` refactorizado para detectar botones renderizados tardíamente por el builder GHL.
+
+### Anti-bots-tester v0.3
+- Compatible con anti-bots v1.1: dispara un `pointerdown` sintético antes de cada intento de submit para que el QA no falle por el nuevo check de interacción.
+
+### EFFECTIVENESS.md actualizado
+- Estimación de bloqueo sube de ~85-95% (v1.0) a ~90-98% (v1.1).
+- Tabla de mejoras frente a Niveles 2-3 ahora bloqueados parcialmente por la nueva capa.
+
+---
+
 ## [v4.3.1] — 2026-04-13
 
 ### Anti-bots: quitar API de debug por seguridad
